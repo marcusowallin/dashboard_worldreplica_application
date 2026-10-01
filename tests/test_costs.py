@@ -1,11 +1,11 @@
-"""Tests for steps 4-5 (src/story/costs.py, cost_step / passthrough_step, range_rows chart)."""
+"""Tests for step 3 (src/story/costs.py, bill_step, range_rows chart)."""
 import pytest
 
 from src.model.run import AIRLINES
 from src.story.costs import cost_cases, size_neutral, summary
 from src.story.hero import build_hero
 from src.story.robustness import loss_ranges
-from src.story.steps import cost_step, passthrough_step
+from src.story.steps import bill_step
 from src.twins import get_field, get_model_value, load_twins
 from src.ui.charts import range_rows
 from src.ui.format import story_eur_m_range
@@ -51,23 +51,23 @@ def test_new_fy25_fields_are_level_1_with_page_and_quote():
     for a in AIRLINES:
         for f in ("operating_costs_fy25", "revenue_fy25", "ask_fy25"):
             field = get_field(TWINS, a, f)
-            assert field["level"] == 1 and field["status"] == "found" and field["page"] and field["quote"]
+            assert field["level"] == 1 and field["status"] in ("found", "verified") and field["page"] and field["quote"]
     assert get_model_value(TWINS, "lufthansa", "ask_fy25") == 338_552e6
 
 
-def test_step_texts():
-    c27, c26 = cost_cases(TWINS, "FY2027", FX, SPLIT), cost_cases(TWINS, "FY2026", FX, SPLIT)
+def test_bill_step_text():
+    from src.story.choices import net_cost_per_tonne
+    c27 = cost_cases(TWINS, "FY2027", FX, SPLIT)
     g27 = {a: summary(r, "gross") for a, r in c27.items()}
-    g26 = {a: summary(r, "gross") for a, r in c26.items()}
-    neutral = {a: size_neutral(TWINS, a, *g27[a]) for a in AIRLINES}
-    step = cost_step(g27, g26, neutral)
-    assert step["relative"] == "about the same per seat-km as its peers"
-    assert story_eur_m_range(*g27["lufthansa"]) in step["headline"] and len(step["body"].split()) <= 40
-    p = passthrough_step({a: summary(r, "net") for a, r in c27.items()},
-                         {a: get_model_value(TWINS, a, "recapture_rate") for a in AIRLINES},
-                         {a: summary(r, "net_at_low") for a, r in c27.items()})
-    assert "Air France-KLM, passing on circa 85%" in p["headline"] and "one quarter" in p["body"]
-    assert story_eur_m_range(*summary(c27["lufthansa"], "net")) in p["headline"]
+    n27 = {a: summary(r, "net") for a, r in c27.items()}
+    low = {a: summary(r, "net_at_low") for a, r in c27.items()}
+    rec = {a: get_model_value(TWINS, a, "recapture_rate") for a in AIRLINES}
+    step = bill_step(g27, n27, rec, low, net_cost_per_tonne(TWINS, FX, SPLIT))
+    assert story_eur_m_range(*g27["lufthansa"]) in step["headline"] and story_eur_m_range(*n27["lufthansa"]) in step["headline"]
+    assert "Air France-KLM, passing on circa 85%, is left with" in step["headline"] and "one quarter" in step["body"]
+    assert "Per tonne of fuel the net cost is EUR " in step["body"] and len(step["body"].split()) <= 75
+    falling = bill_step(g27, n27, rec, low, net_cost_per_tonne(TWINS, FX, SPLIT), falling=True)
+    assert "the fall cuts" in falling["headline"] and "better off" in falling["headline"]
 
 
 def test_range_rows_chart():

@@ -1,9 +1,10 @@
-"""Number formats - one helper per kind, used everywhere (DESIGN_BRIEF.md section 3).
+"""Number formats - one helper per kind, used everywhere (design notes).
 
 Inputs are in model units: EUR amounts in EUR, shares as fractions (0.117 = 11.7%).
 Negatives use a true minus sign (U+2212); ranges use an en dash, or "to" when a sign is involved.
 None (missing) always prints as "n/a" - never as 0.
 """
+import math
 from decimal import ROUND_HALF_UP, Decimal
 
 MINUS = "−"
@@ -106,17 +107,22 @@ def story_eur_m(amount_eur):
     return _signed(f"EUR {abs(rounded):,.0f}m", rounded, False)
 
 
+def _outward(low, high, step):
+    """Round a range outward - low end down, high end up - so the printed range always contains the computed one."""
+    return math.floor(round(low / step, 9)) * step, math.ceil(round(high / step, 9)) * step
+
+
 def story_eur_m_range(low, high):
-    """(219e6, 267e6) -> 'EUR 220-265m'; one step size for both ends (the larger end decides)."""
+    """(218.5e6, 266.8e6) -> 'EUR 215-270m'; outward rounding, one step size for both ends (the larger end decides)."""
     if low is None or high is None:
         return NA
     low, high = sorted((low, high))
     step = eur_m_step(max(abs(low), abs(high)))
-    a, b = _half_up(low / 1e6, step), _half_up(high / 1e6, step)
+    a, b = _outward(low / 1e6, high / 1e6, step)
     if a == b:
-        return story_eur_m(low)
+        return _signed(f"EUR {abs(a):,.0f}m", a, False)
     if a < 0 or b < 0:
-        return f"{story_eur_m(low)} to {story_eur_m(high)}"
+        return (f"{_signed(f'EUR {abs(a):,.0f}m', a, False)} to {_signed(f'EUR {abs(b):,.0f}m', b, False)}")
     return f"EUR {a:,.0f}{DASH}{b:,.0f}m"
 
 
@@ -129,11 +135,12 @@ def story_pct(share):
 
 
 def story_pct_range(low, high):
-    """(0.096, 0.117) -> '10-12%'; collapses to one value when both ends round the same ('1%')."""
+    """(0.096, 0.117) -> '10-12%'; nearest whole number at both ends (outward rounding would turn a computed 0.6-1.2%
+    into '0-2%'); collapses to one value when both ends round the same ('1%')."""
     if low is None or high is None:
         return NA
     low, high = sorted((low, high))
-    a, b = _half_up(low * 100), _half_up(high * 100)
+    a, b = _half_up(low * 100) + 0.0, _half_up(high * 100) + 0.0         # + 0.0 turns a negative zero into 0
     if a == b:
         return story_pct(low)
     if a < 0 or b < 0:

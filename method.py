@@ -15,18 +15,20 @@ from src.news_keywords import AIRLINE_TERMS, AVIATION_CONTEXT, EXCLUDE_TERMS, FU
 from src.story import method_content as mc
 from src.story.hero import company_reports_as_of, consensus_as_of, split_check
 from src.story.price_split import (
-    LOOKBACK_YEARS, THRESHOLD_USD_T, WINDOW_DAYS, benchmark_split, co_movement, lookback_table,
+    LOOKBACK_YEARS, THRESHOLD_USD_T, WINDOW_DAYS, benchmark_split, co_movement, lookback_table, today_share,
 )
 from src.story.robustness import RECAPTURE_LOW, SPLITS, break_even_recapture, ranking_grid
 from src.story.sources import assumption_groups
 from src.story.yardstick import expected_operating_profit, expected_revenue, poll_cross_check
 from src.twins import TwinsError, load_twins
 from src.ui import method_parts as mp
+from src.ui.charts import plot, split_history
 from src.ui.css import inject
 from src.ui.format import eur_m, pct, pct_range
 from src.ui.theme import AIRLINE_LABELS
 from src.validation import (
-    BRENT_ROWS, CONFIDENCE_RULE, CRACK_COLS, PRINTED, SOURCE, confidence_label, fuel_bill_reconciliation,
+    BRENT_ROWS, CONFIDENCE_RULE, CREDIT_SCALE, CRACK_COLS, PRINTED, SOURCE, confidence_breakdown, confidence_label,
+    fuel_bill_reconciliation,
     lufthansa_validation,
 )
 
@@ -43,7 +45,7 @@ SECTIONS = (
     ("validation", "Validation", 0), ("validation-t2", "Lufthansa's own table", 1),
     ("validation-t9", "Fuel bill reconciliation", 1), ("validation-eps", "EPS reconciliation", 1),
     ("validation-robustness", "Robustness of the ranking", 1), ("validation-tagger", "News tagger accuracy", 1),
-    ("limitations", "Limitations, confidence, data status", 0),
+    ("limitations", "Limitations, confidence, data status", 0), ("confidence", "How the confidence score is calculated", 1),
     ("news-sources", "News sources", 0), ("ideas", "Ideas for improvement", 0),
 )
 
@@ -70,21 +72,27 @@ with st.container(key="method-layout"):
         status = mc.status_table(twins)
         total = sum(sum(c.values()) for s, c in status.items() if s not in ("not-disclosed", "not-applicable"))
         found = sum(status.get("found", {}).values())
+        verified_n = sum(status.get("verified", {}).values())
+        lowest_label = min((confidence_label(twins, a)[0] for a in AIRLINES), key={"LOW": 0, "MEDIUM": 1, "HIGH": 2}.get)
         st.markdown(
             "This page documents every number on the story page: where each company figure comes from and how "
             "sure we are of it, every assumption, the calculation step by step, the checks that were run, what the "
             "analysis cannot do, and how the news is collected. The small superscript markers on the story, such as "
             "**[A26]** or **[L1]**, open the matching entry here in a new tab.\n\n"
-            f"**Where things stand.** {total} company figures carry a value; {found} of them were read from the "
-            "companies' documents but are **not yet checked by hand** against the pages, and "
-            f"{sum(status.get('third-party', {}).values())} are third-party figures (analyst consensus, one press "
-            f"report), {sum(status.get('derived', {}).values())} are calculated from printed figures and "
-            f"{sum(status.get('assumption', {}).values())} is an assumption. The confidence label on the story is therefore LOW, and says so. Company figures are used exactly "
+            f"**Where things stand.** {total} company figures carry a value. {verified_n} are **verified**: checked "
+            "against the company's own document (the quoted words found on the cited page, plus a reasonability test) "
+            "or, for consensus EPS, against the dated MarketScreener snapshot and the live MarketScreener page. "
+            f"{found} are read from a document but not yet checked, "
+            f"{sum(status.get('third-party', {}).values())} are other third-party figures (analyst consensus on revenue "
+            f"and profit, one press report), {sum(status.get('derived', {}).values())} are calculated from printed "
+            f"figures, {sum(status.get('assumption', {}).values())} is an assumption and "
+            f"{sum(status.get('not-disclosed', {}).values())} are not disclosed by the company. The confidence label "
+            f"on the story is therefore {lowest_label}, and says so. Company figures are used exactly "
             "as printed; nothing is estimated by an AI model - the AI only classifies news headlines.")
         c1, c2, c3 = st.columns(3)
         c1.metric("Figures with a value", total)
-        c2.metric("Not yet verified", found)
-        c3.metric("Verified", sum(status.get("verified", {}).values()))
+        c2.metric("Verified", verified_n)
+        c3.metric("Not verified (calculated, third-party, assumed, undisclosed or not yet checked)", total - verified_n)
         st.html(f'<p class="fsm-faint">Company reports to {datetime.strptime(company_reports_as_of(twins), "%Y-%m-%d"):%-d %b %Y}'
                 f' · analyst consensus snapshot {datetime.strptime(consensus_as_of(twins), "%Y-%m-%d"):%-d %b %Y}'
                 + (f' · prices to {live["moves"]["latest_day"]:%-d %b %Y}' if live else " · live prices unavailable")
@@ -130,12 +138,12 @@ with st.container(key="method-layout"):
             "The page follows one chain, the way a finance team would build it: **price move -> exposed fuel -> "
             "extra cost -> pass-through -> profit and EPS -> comparison**. Every step is the same calculation for "
             "all three airlines.")
-        st.markdown("**1. Price split (Steps 1-2).** A jet fuel move is crude oil plus the jet premium (the 'crack'), "
+        st.markdown("**1. Price split (Step 1).** A jet fuel move is crude oil plus the jet premium (the 'crack'), "
                     "both in USD per tonne from daily FRED prices (jet x 331.8 gallons per tonne, Brent x 7.9 barrels "
                     "per tonne). The baseline is 27 July 2026. The headline scenario is a USD 100/t rise split like the "
                     f"typical large move of the past {LOOKBACK_YEARS} years (A28); 'today's move' uses the actual split.")
         st.latex(r"\Delta \text{Jet} = \Delta \text{Brent} + \Delta \text{Crack}")
-        st.markdown("**2. Exposed fuel (Step 3).** For each period, the share of fuel still open to a crude move and "
+        st.markdown("**2. Exposed fuel (Step 2).** For each period, the share of fuel still open to a crude move and "
                     "to a premium move depends on the hedge ratio *h* and which instruments the hedges are. A Brent "
                     "hedge covers crude only; a gasoil hedge covers crude and a share *g* = 0.8 of the premium (A6); a jet "
                     "hedge covers both. With *h* split into Brent, gasoil and jet parts:")
@@ -143,18 +151,18 @@ with st.container(key="method-layout"):
         st.markdown("Only Lufthansa discloses its split; for Air France-KLM and IAG the answer is a range from "
                     "all-jet to all-crude (A5). Rest of 2026 covers the days after the latest price; 2027 is a full year "
                     "with the move held (a parallel shift, A14).")
-        st.markdown("**3. Extra fuel cost, gross (Step 4).** Volume *V* in tonnes times the unprotected shares times "
+        st.markdown("**3. Extra fuel cost, gross (Step 3).** Volume *V* in tonnes times the unprotected shares times "
                     "the price moves, converted to euros:")
         st.latex(r"\Delta \text{Fuel} = V \,\big(u_B\,\Delta \text{Brent} + u_C\,\Delta \text{Crack}\big)\,/\,\text{FX}")
         st.markdown("It is also shown as a share of FY2025 operating costs and in euro cents per seat-kilometre "
                     "(A30). Lufthansa's options protect less as prices rise; for the rest of 2026 the answer includes a "
                     "case built from Lufthansa's own sensitivity table (A24).")
-        st.markdown("**4. Pass-through (Step 5).** Airlines recover part of the extra cost through fares and "
+        st.markdown("**4. Pass-through (Step 3).** Airlines recover part of the extra cost through fares and "
                     "surcharges. With the printed rate *r* (and 50% as a cautious case, A25):")
         st.latex(r"\text{Net cost} = (1-r)\,\Delta \text{Fuel} \qquad \Delta \text{EBIT} = -\,\text{Net cost}")
-        st.markdown("The net cost is the euro figure in the answer; Step 5 and the answer use the same function and a "
+        st.markdown("The net cost is the euro figure in the answer; Step 3 and the answer use the same function and a "
                     "test checks that they agree to the cent.")
-        st.markdown("**5. Profit and EPS (Step 6).** The net cost comes off the operating profit expected for the same "
+        st.markdown("**5. Profit and EPS (Step 4).** The net cost comes off the operating profit expected for the same "
                     "year (see below). The operating margin uses expected revenue plus the revenue recovered through "
                     "fares (A31). Net income and EPS follow the income statement:")
         st.latex(r"\Delta NI = \Delta \text{EBIT}\,(1-t)(1-m) \qquad \Delta \text{EPS} = \Delta NI \,/\, N")
@@ -185,14 +193,14 @@ with st.container(key="method-layout"):
                         f"({eur_m(check['poll'])}, published before the fuel move): "
                         f"{'within' if check['within'] else 'outside'} the 10% tolerance.")
 
-        H("method-drivers", "Comparison and drivers (Steps 7-8)", 3)
+        H("method-drivers", "Comparison and drivers (Steps 5-6)", 3)
         st.markdown(
             "**Why one airline is hit harder** is split into four factors by swapping Lufthansa's inputs for a "
             "peer's one at a time, in every possible order, and averaging (Shapley values; the parts add up exactly to "
             "the gap): pass-through, margin cushion (fuel burned per euro of expected profit), hedge cover and hedge "
             "quality (A29). **Robustness rule:** a ranking or a driver is named only if it holds in every range case; "
-            "otherwise the text says what it depends on. **Step 8** varies one assumption at a time across its range "
-            "to show which could change the answer (A32). **Step 11** recomputes the page for any scenario "
+            "otherwise the text says what it depends on. **Step 6** varies one assumption at a time across its range "
+            "to show which could change the answer (A32). **Step 9** recomputes the page for any scenario "
             "(A33).")
 
         # --- assumptions -----------------------------------------------------------------------------------------
@@ -244,9 +252,9 @@ with st.container(key="method-layout"):
         st.markdown(
             "Three automated checks run on every change: (1) an independent hand calculation of the whole chain "
             "(price move -> fuel cost -> EBIT -> net income -> EPS) from printed inputs reproduces the model; (2) "
-            "the net cost in Step 5 equals the euro figures in the answer (Step 9) exactly, and Step 6's chain equals the "
+            "the net cost in Step 3 equals the euro figures in the answer (Step 7) exactly, and Step 4's chain equals the "
             "core model for every case; (3) the answer, every step and the scenario controls give the same numbers "
-            "for any setting of the Step 11 controls.")
+            "for any setting of the Step 9 controls.")
 
         H("validation-robustness", "Robustness of the ranking", 3)
         checks = split_check(twins, fx)
@@ -284,7 +292,14 @@ with st.container(key="method-layout"):
                     f"**Benchmark split.** The scenario's {stats['split'][0]:.0f} / {stats['split'][1]:.0f} is the median "
                     f"crude share of {stats['n']} large moves (jet fuel at least USD {THRESHOLD_USD_T:.0f}/t within "
                     f"{WINDOW_DAYS} days) in the {LOOKBACK_YEARS} years before 27 July; middle half "
-                    f"{pct(stats['q1'], decimals=0)}-{pct(stats['q3'], decimals=0)} (A28). Sensitivity to the lookback:")
+                    f"{pct(stats['q1'], decimals=0)}-{pct(stats['q3'], decimals=0)}; a bootstrap 95% interval for the median is "
+                    f"{pct(stats['interval'][0], decimals=0)}-{pct(stats['interval'][1], decimals=0)} (A28). The moves are not "
+                    "independent (36 of the 81 end in 2022), so treat the interval as a guide to how loose the median is. "
+                    "How the past moves split between crude and the premium, with today's move:")
+                moves_now = live["moves"]
+                plot(split_history(stats, {"day": moves_now["latest_day"], "share": today_share(moves_now),
+                                           "d_jet": moves_now["d_jet"]}))
+                st.markdown("Sensitivity to the lookback:")
                 st.markdown(mc.md_table([{"Lookback": f"{r['years']} years", "From": f"{r['start']:%b %Y}",
                                           "Large moves": r["n"], "Median crude share": pct(r["median"], decimals=0),
                                           "Middle half": f"{pct(r['q1'], decimals=0)}-{pct(r['q3'], decimals=0)}"}
@@ -318,11 +333,25 @@ with st.container(key="method-layout"):
         # --- limitations, confidence, status --------------------------------------------------------------------
         H("limitations", "Limitations, confidence and data status")
         st.markdown("\n".join(f"- {item}" for item in mc.LIMITATIONS))
-        st.markdown("**Confidence label.** " + CONFIDENCE_RULE)
+        H("confidence", "How the confidence score is calculated", 3)
+        st.markdown(CONFIDENCE_RULE)
+        st.markdown(mc.md_table([{"Input is...": name, "Credit": f"{credit:.2f}", "Meaning": why}
+                                 for name, credit, why in CREDIT_SCALE]))
         cc = st.columns(3)
         for col, airline in zip(cc, AIRLINES):
-            label, share, _ = confidence_label(twins, airline)
-            col.metric(f"Confidence: {mc.NAMES[airline]}", label, f"{share:.0%} of inputs verified", delta_color="off")
+            label, score, _ = confidence_label(twins, airline)
+            col.metric(f"Confidence: {mc.NAMES[airline]}", label, f"score {score:.0%}", delta_color="off")
+        grid = {a: {r["field"]: r for r in confidence_breakdown(twins, a)} for a in AIRLINES}
+        order = list(dict.fromkeys(f for a in AIRLINES for f in grid[a]))
+        rows = [{"Input behind the 2027 answer": mc.FIELD_LABELS.get(f, f),
+                 **{mc.NAMES[a]: (f"{grid[a][f]['credit']:.2f} ({grid[a][f]['status']})" if f in grid[a] else "n/a")
+                    for a in AIRLINES}} for f in order]
+        rows.append({"Input behind the 2027 answer": "**Score (average)**",
+                     **{mc.NAMES[a]: f"**{confidence_label(twins, a)[1]:.0%}**" for a in AIRLINES}})
+        st.markdown(mc.md_table(rows))
+        st.markdown("All inputs weigh the same. A weighting by influence on the answer (from the tornado, Step 6) "
+                    "would be fairer and is listed under ideas. The score for the rest of 2026 is "
+                    + ", ".join(f"{mc.NAMES[a]} {confidence_label(twins, a, 'FY2026')[1]:.0%}" for a in AIRLINES) + ".")
         st.markdown("**Data status** - number of fields by status (meaning in brackets):")
         table = mc.status_table(twins)
         st.markdown(mc.md_table([{"Status": f"{s} ({mc.STATUS_WORDS[s]})",

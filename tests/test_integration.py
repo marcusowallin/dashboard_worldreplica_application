@@ -84,9 +84,10 @@ def test_page_end_to_end(fake_world):
     at = AppTest.from_file(APP, default_timeout=90).run()
     assert not at.exception
     html = _html(at)
-    assert "Scenario: jet fuel +USD 100/t." in html and "before any additional pass-through" in html
-    assert "Prices to 29 Sep 2026" not in html and "Prices to 22 Sep 2026" in html      # the mocked feed's last day
-    assert 'id="step-09"' in html and html.index("fsm-hook") < html.index("fsm-hero-sentence")    # the answer comes last
+    assert "A hypothetical jet fuel rise of +USD 100/t" in html and "before any additional pass-through" in html
+    detail = " ".join(m.value for m in at.markdown)
+    assert "Data as of 22 Sep 2026" in html and "Prices to 29 Sep 2026" not in detail and "Prices to 22 Sep 2026" in detail
+    assert 'id="step-07"' in html and html.index("fsm-hook") < html.index("fsm-hero-sentence")    # the answer comes last
     news = AppTest.from_file(NEWS, default_timeout=90).run()                          # the news room is its own page
     assert not news.exception
     news.button(key="cta-news").click().run()
@@ -105,9 +106,29 @@ def test_story_reads_bottom_up_and_ends_with_the_answer(fake_world):
     assert not at.exception
     html = _html(at)
     numbers = [int(n) for n in re.findall(r'fsm-step-no">STEP (\d+)</span>', html)]
-    assert numbers == sorted(numbers) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]           # no chapter out of order
+    assert numbers == sorted(numbers) == [1, 2, 3, 4, 5, 6, 7, 8, 9]                    # no chapter out of order
     assert html.index("fsm-hook") < html.index('fsm-step-no">STEP 01') < html.index("fsm-hero-sentence")
-    assert html.index("fsm-hero-sentence") < html.index('fsm-step-no">STEP 10')         # the answer follows the evidence
-    assert html.count('class="fsm-bridge"') == 10                                       # chapters 1-8, the answer, meaning
+    assert html.index('fsm-step-no">STEP 06') < html.index("fsm-hero-sentence") < html.index('fsm-step-no">STEP 08')   # evidence, assumptions, then the answer
+    assert html.count('class="fsm-bridge"') == 8                                        # chapters 1-6, the answer, meaning
     hook_part = html[html.index("fsm-hook"):html.index('fsm-step-no">STEP 01')]
-    assert "Scenario: jet fuel" not in hook_part and "net cost" not in hook_part        # no answer in the opening
+    assert "Yes:" not in hook_part and "net cost" not in hook_part and "hypothetical shock" in hook_part   # no answer; honest
+
+
+def test_no_chart_on_any_page_can_be_zoomed(fake_world):
+    """Dragging a rectangle zooms a chart in with no way back. Every chart figure must be locked (figure level, because
+    Streamlit's theme can replace a template) and the config must keep the mouse wheel for page scrolling."""
+    import json
+    import streamlit as st
+    from src.ui.charts import CONFIG
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    assert CONFIG["scrollZoom"] is False and CONFIG["doubleClick"] is False
+    at = AppTest.from_file(APP, default_timeout=90).run()
+    assert not at.exception
+    charts = at.get("plotly_chart")
+    assert len(charts) >= 7                                              # the story's charts (seven with the mocked feed)
+    for chart in charts:
+        layout = json.loads(chart.proto.spec)["layout"]
+        assert layout["dragmode"] is False
+        assert layout["xaxis"]["fixedrange"] is True and layout["yaxis"]["fixedrange"] is True
+        assert json.loads(chart.proto.config)["scrollZoom"] is False

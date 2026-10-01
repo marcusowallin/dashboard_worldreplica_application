@@ -10,7 +10,7 @@ RULE (changed 29 Sep 2026): SOURCE HIERARCHY - use the highest available level a
   L3-4: URL, access date, dated snapshot in sources/third-party/, status "third-party".
   Level is L1 for every row below unless stated otherwise.
 
-Status vocabulary (same as 02_SPEC.md):
+Status vocabulary:
   verified = I checked it on the PDF page | found = seen in the company's own document, not yet
   checked by me | not-disclosed | assumption | derived | third-party (L3-4) | to-extract = not yet looked for.
 Everything below marked "found" still needs my check against the PDF.
@@ -74,7 +74,7 @@ Everything below marked "found" still needs my check against the PDF.
 | Tax rate (marginal, model input) | Expected tax rate 25% (group parent tax group: 15.825% corporation tax/solidarity + 9.175% trade tax). Reported effective rate FY25 29% (context: deferred-tax revaluation from the resolved future German corporation tax cut) | Annual report 2025 p.282 (T109), p.44 | found. Verbatim p.282: "The expected tax expense is calculated by multiplying profit before income taxes by a tax rate of 25% (previous year: 25%)."; p.44: "At 29%, the effective tax ratio for continuing operations was above the expected tax rate of 25%." |
 | Minorities FY25 | Non-controlling interests EUR 24m of profit after income taxes EUR 1,363m -> m = 24 / 1,363 = 1.8% | Annual report 2025 p.257 | derived. Verbatim: "Profit/loss after income taxes 1,363 1,393"; "Profit/loss attributable to non-controlling interests 24 13" |
 | EPS FY25 | EUR 1.12 (basic = diluted) | Annual report 2025 p.257 | found. Verbatim: "“Basic”/“diluted” earnings per share in € 16 1.12 1.15" |
-| Diluted shares | - | Annual report 2025 note 16 | to-extract (Prompt 2) |
+| Diluted shares | - | Annual report 2025 note 16 | to-extract |
 
 ## Air France-KLM
 Documents: R = Q2 2026 press release (sources/afklm/2026-Q2/20260729-2026-q2-afklm-press-release-1 (1).pdf);
@@ -128,7 +128,7 @@ Slide 16 / slide 14 column order as extracted: FY 2025 | Q1 2026 | Q2 2026 | Q3 
 | Tax rate (marginal, model input) | Expected tax rate 24% (Spain 25%, UK 25%, Ireland 12.5%, profit mix). Reported effective rate FY25 25.8% (context) | Annual report 2025 p.37; note 10 p.183 | found. Verbatim p.37: "The geographical distribution of profits and losses in the Group results in the expected tax rate being 24% for the year."; "the effective tax rate was 25.8% (2024: 23.3%)" |
 | Minorities FY25 | Nil -> m = 0 | Annual report 2025 p.154 | found. Verbatim: "Attributable to: Equity holders of the parent 3,342 ... Non-controlling interest – –" |
 | EPS FY25 | Basic 71.3, diluted 69.5 (EUR CENTS) | Annual report 2025 p.154 | found. Verbatim: "Basic earnings per share (€ cents) 11 71.3 55.7"; "Diluted earnings per share (€ cents) 11 69.5 55.5" |
-| Diluted shares, net debt/EBITDA | - | FY25 annual report | to-extract (Prompt 2) |
+| Diluted shares, net debt/EBITDA | - | FY25 annual report | to-extract |
 
 ## Company-compiled consensus (EPS baseline)
 | Airline | What is published | Date | Status |
@@ -195,8 +195,8 @@ operating_costs_fy25, revenue_fy25, ask_fy25 (unit "million ASK") in data/airlin
 |---|---|---|
 | GDELT DOC 2.0 API | **Kept - the only automatic feed** | Free, no key, headlines + links usable for display, English / German / French coverage; already integrated and tested. Split into 3 short queries (GDELT rejects long ones), 6 s apart (its limit: 1 request per 5 s). Known risk: 429 rate limits from some IPs - handled with a message, the page never depends on it. |
 | Major outlets (Reuters, Bloomberg, Financial Times, WSJ, Handelsblatt, Les Echos, BBC) | **On request only, via web search** ("Search the web" button) | No free licensed feed; reached through Anthropic's web search tool on demand. Only headline, outlet, date and link are kept - no article text. Caps (approved): 3 searches per click, 1 click per 30 minutes and 5 per day for all visitors; estimated USD 0.03-0.08 per click (Anthropic price list read 1 Oct 2026: USD 10 per 1,000 searches + results as input tokens on Claude Haiku 4.5). |
-| Aviation Week | **Not used** | Owner's decision 1 Oct 2026 ("skip Aviation Week"); the detailed reasoning from the earlier session was not saved to a file - add it here if it should be on the method page. |
-| Company IR newsrooms (RSS) | Not built | Earlier fallback idea for GDELT outages (REVIEW_BACKLOG R8); not needed while GDELT + web search cover the case. |
+| Aviation Week | **Not used** | Decision 1 Oct 2026 ("skip Aviation Week"); the detailed reasoning from the earlier session was not saved to a file - add it here if it should be on the method page. |
+| Company IR newsrooms (RSS) | Not built | Earlier fallback idea for GDELT outages; not needed while GDELT + web search cover the case. |
 Pre-AI keyword rule (src/news_keywords.py): airline / subsidiary name, or aviation-fuel term, or market / disruption term
 together with an aviation word; place-name exclusions (e.g. "New Iberia", seen 1 Oct 2026). Duplicates merged by story,
 other outlets shown as "also reported by". AI tags (Claude Haiku 4.5) are classifications only and are checked in code.

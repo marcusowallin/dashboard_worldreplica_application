@@ -1,6 +1,6 @@
 """Hero robustness: operating-profit impact of the USD 100/t benchmark across every uncertain input.
 
-X (DESIGN_BRIEF.md section 6) = operating-profit change from a jet fuel move, as a share of the operating
+X (design notes) = operating-profit change from a jet fuel move, as a share of the operating
 profit expected for the same year (src/story/yardstick.py). Reported here as a positive LOSS share
 (0.12 = the move costs 12% of expected operating profit).
 

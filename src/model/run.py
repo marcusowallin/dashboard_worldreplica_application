@@ -71,8 +71,13 @@ def market_from(scenario, live=None, as_of=None):
                           f"{m['d_jet']:+.0f} USD/t (Brent {m['d_brent']:+.0f}, crack {m['d_crack']:+.0f}); "
                           f"USD/EUR {live['fx'].data:.4f} (ECB, {live['fx'].as_of:%d %b %Y}); g = {scenario.g}.")}
     return {"mode": "scenario", "d_brent": scenario.d_brent, "d_crack": scenario.d_crack, "monthly": {},
-            "split_day": as_of or date.today(), "usd_per_eur": scenario.usd_per_eur, "g": scenario.g,
+            "split_day": as_of or today(), "usd_per_eur": scenario.usd_per_eur, "g": scenario.g,
             "label": scenario.label}
+
+
+def today():
+    """The model's 'today': the rest-of-2026 volume depends on it. One function so tests (and replays) can pin it."""
+    return date.today()
 
 
 def period_label(market, period):
@@ -158,7 +163,7 @@ def build_inputs(twins, airline, period, case, market):
         "d_brent": weighted("d_brent"), "d_crack": weighted("d_crack"),
         "mix": _lufthansa_mix(twins) if airline == US else PEER_MIX_CASES[case],
         "recapture": _v(twins, airline, "recapture_rate"), "tax": _v(twins, airline, "tax_rate_marginal"),
-        "minority": _v(twins, airline, "minority_share"), "shares": _v(twins, airline, "diluted_shares"),
+        "minority": _v(twins, airline, "minority_share"), "shares": _v(twins, airline, "diluted_shares_forward"),
         "baseline_eps": baseline, "baseline_source": baseline_source, "u_override": override,
     }
 

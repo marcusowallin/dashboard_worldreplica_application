@@ -87,7 +87,7 @@ def test_printed_slopes_and_implied_exposure():
 
 def test_lufthansa_validation_runs_on_twins():
     v = lufthansa_validation(load_twins())
-    assert v["u_brent"] == pytest.approx(0.18)
+    assert v["u_brent"] == pytest.approx(0.19)               # 1 - 81% year-to-go hedge ratio (slide 17, FY column)
     assert v["summary"]["max_abs"] > 0          # the gap is reported, not tuned away
 
 
@@ -116,9 +116,43 @@ def test_t9_not_possible_is_explained():
     assert "computed" not in fuel_bill_reconciliation(twins, "iag")
 
 
-def test_t10_confidence_low_until_verified():
-    label, share, missing = confidence_label(load_twins(), "lufthansa")
-    assert label == "LOW" and share == 0 and "recapture_rate" in missing
+def test_t10_graded_score_by_hand():
+    """Credit per input: verified L1 1.00; verified L4 or derived 0.75; third-party or assumption 0.50; found or
+    not disclosed 0.25; average of the 12 inputs behind FY2027 (not-applicable left out)."""
+    twins = load_twins()
+    # Lufthansa: volume 1, hedge 1, upper (third-party) .5, gasoil 1, brent 1, jet (derived) .75, recapture 1, tax 1,
+    #            minorities (derived: 24 / 1,363) .75, forward shares (derived) .75, consensus EPS (verified L4) .75, consensus EBIT (third-party) .5
+    label, score, weaker = confidence_label(twins, "lufthansa")
+    assert score == pytest.approx((1 + 1 + .5 + 1 + 1 + .75 + 1 + 1 + .75 + .75 + .75 + .5) / 12) and label == "HIGH"
+    assert set(weaker) == {"hedge_ratio_fy27_upper", "hedge_mix_jet", "diluted_shares_forward", "consensus_eps_fy27",
+                           "consensus_ebit_fy27", "minority_share"}
+    # Air France-KLM: volume derived .75, hedge 1, mix not disclosed 3 x .25, recapture 1, tax 1, minorities derived .75,
+    #                 forward shares verified 1, EPS .75, EBIT .5  (hedge_ratio_fy27_upper does not apply)
+    label, score, _ = confidence_label(twins, "afklm")
+    assert score == pytest.approx((.75 + 1 + .75 + 1 + 1 + .75 + 1 + .75 + .5) / 11) and label == "MEDIUM"
+    assert confidence_label(twins, "iag")[0] == "MEDIUM"
+
+
+def test_t10_high_needs_every_input_checked_and_nothing_checked_means_low():
+    twins = load_twins()
+    fields = twins["airlines"]["lufthansa"]["fields"]
+    fields["recapture_rate"]["status"] = "found"                    # one unchecked input blocks HIGH ...
+    label, score, _ = confidence_label(twins, "lufthansa")
+    assert score > 0.8 - 0.1 and label == "MEDIUM"                    # ... even though the score is still high
+    for v in twins["airlines"].values():                            # nothing sourced at all -> LOW
+        for field in v["fields"].values():
+            if field["status"] not in ("not-applicable",):
+                field["status"] = "not-disclosed"
+    assert confidence_label(twins, "lufthansa")[:2] == ("LOW", pytest.approx(0.25))
+
+
+def test_t10_breakdown_matches_the_label_and_hides_fields_that_do_not_apply():
+    from src.validation import confidence_breakdown
+    twins = load_twins()
+    rows = confidence_breakdown(twins, "afklm")
+    assert "hedge_ratio_fy27_upper" not in [r["field"] for r in rows]       # not-applicable for the peers
+    assert sum(r["credit"] for r in rows) / len(rows) == pytest.approx(confidence_label(twins, "afklm")[1])
+    assert all(0 < r["credit"] <= 1 and r["why"] for r in rows)
 
 
 def test_t10_thresholds():

@@ -1,4 +1,4 @@
-"""HTML components for the story (DESIGN_BRIEF.md section 4). Each function returns an HTML string.
+"""HTML components for the story (design notes). Each function returns an HTML string.
 
 Render with st.html(...). Native widgets (charts, buttons, expanders) cannot sit inside custom HTML, so
 cards that hold them are keyed containers styled by src/ui/css.py:

@@ -1,4 +1,4 @@
-"""Page CSS for the story (DESIGN_BRIEF.md sections 4 and 12). Injected once per page with inject().
+"""Page CSS for the story (design notes). Injected once per page with inject().
 
 Hooks: Streamlit's data-testid attributes and keyed containers (st.container(key="step-01") gets the class
 "st-key-step-01"). Our own HTML uses "fsm-" classes. No JavaScript: the active-step highlight uses CSS

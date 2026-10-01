@@ -11,6 +11,7 @@ from src.story.exposure import premium_exposed_range, unhedged_range
 from src.story.price_split import compare_to_history, today_share
 from src.story.profit import span
 from src.ui.format import (
+    DASH,
     _half_up, approx_fraction, story_eur_m_range, story_eur_share_range, story_margin, story_mt, story_mt_range, story_pct_range,
     story_pct, story_pp_range,
 )
@@ -23,12 +24,19 @@ BASELINE_LABEL = "27 July"
 SIMILAR_MARGIN = 0.003    # margin moves (a fraction: 0.003 = 0.3 pp) are "similar" only if all three airlines are this close
 
 
-def hook_text(moves):
-    """The opening: the question and the stakes, with no answer in it. moves = live['moves'] or None (feeds down)."""
+def hook_text(moves, scenario_move=100.0):
+    """The opening: the question and the stakes, with no answer in it - and honest that the euro figures on the page
+    are for a hypothetical, standard shock, not a forecast. moves = live['moves'] or None (feeds down)."""
+    standard = (f"This page applies one hypothetical shock - jet fuel {'+' if scenario_move >= 0 else '-'}USD "
+                f"{abs(scenario_move):,.0f} a tonne - to all three and follows it from the price of a tonne to each "
+                "airline's earnings, ending with the answer and how far to trust it. ")
+    if moves and scenario_move:
+        ratio = abs(moves["d_jet"]) / abs(scenario_move)
+        standard += (f"Today's actual move is {ratio:.1f} times that, so the euro amounts compare the airlines; they "
+                     "are not a forecast. ")
     body = ("Around 27 July, just before their Q2 results, Lufthansa, Air France-KLM and IAG each set out what they "
-            "expected to pay for fuel. All three hedge, and all three raise fares when costs rise - but not in the "
-            "same way. This page follows one standard fuel shock from the price of a tonne to each airline's "
-            "earnings, one step at a time, and ends with the answer and how far to trust it. About five minutes.")
+            "expected to pay for fuel. All three hedge and raise fares when costs rise - but not in the same way. "
+            + standard + "About five minutes.")
     if not moves:
         return {"headline": "A jump in jet fuel hurts airlines unequally. Is Lufthansa more exposed than "
                             "Air France-KLM and IAG?", "body": body}
@@ -40,57 +48,46 @@ def hook_text(moves):
                         "less than its rivals?", "body": body}
 
 
-def price_step(moves, scenario_move):
-    """Step 1 - the price move since 27 July. moves = live['moves'] or None (feeds down).
+def shock_step(moves, scenario_move, scenario_split, stats=None, smoothed=None):
+    """Step 1 - how big is the shock and what is it made of (price move, crude vs jet premium, the standard shock).
 
-    Also introduces the standard shock the rest of the page applies to all three airlines, because the answer
-    (Step 9) comes last."""
-    standard = (f"To compare the three fairly, every step applies the same standard shock to each: "
-                f"{'+' if scenario_move >= 0 else '-'}USD {abs(scenario_move):,.0f}/t from {BASELINE_LABEL}.")
+    moves = live['moves'] or None (feeds down); stats = price_split.benchmark_split output; smoothed = the move on
+    five-day averages (choices.smoothed_move) or None. The page applies the same hypothetical shock to all three airlines
+    because the answer (Step 7) comes last, so it is introduced here.
+    """
+    standard = f"{'+' if scenario_move >= 0 else '-'}USD {abs(scenario_move):,.0f}/t"
+    split_text = f"{scenario_split[0]:+.0f} crude / {scenario_split[1]:+.0f} premium"
+    history = ""
+    if stats and not stats["fallback"]:
+        lo, hi = stats["interval"]
+        history = (f"Crude made a median {stats['median'] * 100:.0f}% of the {stats['n']} large moves of the "
+                   f"{stats['years']} years before (middle half {stats['q1'] * 100:.0f}-{stats['q3'] * 100:.0f}%; the median "
+                   f"itself is uncertain, {lo * 100:.0f}-{hi * 100:.0f}%). ")
     if not moves:
         return {"headline": "Live prices are unavailable right now.",
-                "body": f"{standard} Today's move will show here as soon as the price feeds respond."}
+                "body": (f"{history}Every step applies the same hypothetical shock to all three airlines: jet fuel "
+                         f"{standard} from {BASELINE_LABEL}, split {split_text}. Today's move will show here when the "
+                         "feeds respond.")}
     change = moves["d_jet"] / moves["baseline"]["jet"]
     direction = "up" if change >= 0 else "down"
     ratio = abs(moves["d_jet"]) / abs(scenario_move) if scenario_move else float("inf")
-    size = (f"{ratio:.1f} times that" if ratio >= 1.1 else "about that size" if ratio >= 0.9 else "smaller than that")
-    return {"headline": (f"Jet fuel is {direction} {abs(change) * 100:.0f}% "
-                         f"({'+' if moves['d_jet'] >= 0 else '-'}USD {abs(moves['d_jet']):,.0f}/t) since {BASELINE_LABEL}."),
-            "body": (f"All three airlines are measured from the same day, {BASELINE_LABEL}. {standard} "
-                     f"Today's actual move is {size}."),
-            "change": change, "ratio": ratio}
-
-
-def split_step(moves, scenario_split, stats=None):
-    """Step 2 - what moved: crude (Brent) or the jet premium (crack), today vs the past two years' large moves.
-
-    stats = src/story/price_split.benchmark_split output (None or fallback: no history comparison).
-    """
-    why = ("Jet fuel costs crude oil plus a refining premium (the jet 'crack'). It matters because a crude hedge "
-           "covers only the crude part.")
-    if stats and not stats["fallback"]:
-        history = (f"In the {stats['n']} large moves of the {stats['years']} years before {BASELINE_LABEL}, crude made up a median "
-                   f"{stats['median'] * 100:.0f}% (middle half {stats['q1'] * 100:.0f}-{stats['q3'] * 100:.0f}%); "
-                   + (f"the scenario uses that median: +{scenario_split[0]:.0f} crude / +{scenario_split[1]:.0f} premium."
-                      if tuple(scenario_split) == tuple(stats["split"]) else
-                      f"the standard shock uses {scenario_split[0]:+.0f} crude / {scenario_split[1]:+.0f} premium "
-                      "(set in Step 11)."))
-    else:
-        history = (f"Price history is unavailable, so the scenario uses a neutral +{scenario_split[0]:.0f} crude / "
-                   f"+{scenario_split[1]:.0f} premium.")
-    if not moves:
-        return {"headline": "Jet fuel = crude oil (Brent) + the jet premium (crack).", "body": f"{history} {why}"}
+    headline = (f"Jet fuel is {direction} {abs(change) * 100:.0f}% ({'+' if moves['d_jet'] >= 0 else '-'}USD "
+                f"{abs(moves['d_jet']):,.0f}/t) since {BASELINE_LABEL}")
     brent, crack = moves["d_brent"], moves["d_crack"]
-    position = compare_to_history(today_share(moves), stats) if stats else None
-    tail = f", {position} for the {stats['years']} years before." if position else "."
     if brent > 0 and crack > 0:
         share = brent / (brent + crack)
-        headline = (f"{approx_fraction(share).capitalize()} of today's rise is crude, "
-                    f"{approx_fraction(1 - share)} the jet premium{tail}")
+        headline += f" - {approx_fraction(share)} of it crude oil, {approx_fraction(1 - share)} the jet premium."
+        position = compare_to_history(today_share(moves), stats) if stats else None
+        history += f"Today's split is {position} for that history. " if position else ""
     else:
-        headline = (f"Since {BASELINE_LABEL} crude moved {'+' if brent >= 0 else '-'}USD {abs(brent):,.0f}/t and the jet "
-                    f"premium {'+' if crack >= 0 else '-'}USD {abs(crack):,.0f}/t{tail}")
-    return {"headline": headline, "body": f"{history} {why}"}
+        headline += f": crude {brent:+,.0f}, jet premium {crack:+,.0f} USD/t."
+    size = (f"{ratio:.1f} times that" if ratio >= 1.1 else "about that size" if ratio >= 0.9 else "smaller than that")
+    smooth_text = (f" On five-day averages at both ends the move is {smoothed['d_jet']:+,.0f} USD/t."
+                   if smoothed else "")
+    return {"headline": headline,
+            "body": (f"{history}The page applies {standard}, split {split_text}, to all three airlines; today's actual "
+                     f"move is {size}.{smooth_text}"),
+            "change": change, "ratio": ratio}
 
 
 def exposure_step(exposure):
@@ -116,50 +113,28 @@ def _mag(rng):
     return tuple(sorted(abs(x) for x in rng))
 
 
-def cost_step(costs27, costs26, neutral, falling=False):
-    """Step 4 - extra fuel cost after hedging (gross), with the size-neutral comparison.
+def bill_step(gross27, net27, recapture, net_at_low27, per_tonne, falling=False):
+    """Step 3 - the fuel bill after hedging, what fares recover, and what is left (net = the answer's euro figures).
 
-    costs27/costs26: {airline: (gross_low, gross_high)}; neutral: {airline: size_neutral(...)} for 2027.
-    """
-    cents_of = {a: _mag(neutral[a]["cents_per_ask"]) for a in neutral}
-    lh, peers = cents_of[US], [cents_of[p] for p in PEERS]
-    unit = "per seat-km"
-    if all(_overlaps(lh, p) for p in peers):
-        relative = f"about the same {unit} as its peers"
-    elif lh[0] > max(p[1] for p in peers):
-        relative = f"more {unit} than either peer"
-    elif lh[1] < min(p[0] for p in peers):
-        relative = f"less {unit} than either peer"
-    else:
-        relative = f"{unit} within the peers' range"
-    cents = lambda r: f"{r[0]:.2f}\u2013{r[1]:.2f}"                      # noqa: E731
-    opex = {a: story_pct_range(*_mag(neutral[a]["pct_opex"])) for a in neutral}
-    opex_text = (f"{opex[US]} of operating costs for all three" if len(set(opex.values())) == 1
-                 else f"{opex[US]} of Lufthansa's operating costs")
-    amount = story_eur_m_range(*_mag(costs27[US]))
-    verb = f"cuts {amount} from" if falling else f"adds {amount} to"
-    return {"headline": f"After hedging, the scenario {verb} Lufthansa's 2027 fuel bill - {relative}.",
-            "body": (f"That is {cents(lh)} euro cents per seat-km ("
-                     + ", ".join(f"{AIRLINE_SHORT[p]} {cents(cents_of[p])}" for p in PEERS)
-                     + f") and {opex_text}. Rest of 2026: {story_eur_m_range(*_mag(costs26[US]))}, the upper end from its "
-                     "options."),
-            "relative": relative}
-
-
-def passthrough_step(net27, recapture, net_at_low27, falling=False):
-    """Step 5 - gross -> recovered through fares -> net. Net figures = the hero's (same function, same rounding)."""
+    gross27/net27/net_at_low27: {airline: (low, high)} in EUR; recapture: printed rates; per_tonne: {airline: (low, high)}
+    net cost per tonne of fuel (choices.net_cost_per_tonne), the size-neutral exposure."""
     top = max(PEERS, key=lambda p: recapture[p])
     word = "circa " if top == "afklm" else "about "
-    lh, peer = story_eur_m_range(*_mag(net27[US])), story_eur_m_range(*_mag(net27[top]))
+    gross, lh = story_eur_m_range(*_mag(gross27[US])), story_eur_m_range(*_mag(net27[US]))
+    peer = story_eur_m_range(*_mag(net27[top]))
     if falling:
-        headline = (f"Passing on about {recapture[US] * 100:.0f}% of the saving to passengers leaves Lufthansa {lh} "
-                    f"better off; {AIRLINE_SHORT[top]}, passing on {word}{recapture[top] * 100:.0f}%, keeps {peer}.")
+        headline = (f"After hedging, the fall cuts {gross} from Lufthansa's 2027 fuel bill; passing on about "
+                    f"{recapture[US] * 100:.0f}% of the saving leaves it {lh} better off. {AIRLINE_SHORT[top]}, passing on "
+                    f"{word}{recapture[top] * 100:.0f}%, is {peer} better off.")
     else:
-        headline = (f"Passing on about {recapture[US] * 100:.0f}% leaves Lufthansa with {lh} net; {AIRLINE_SHORT[top]}, "
-                    f"passing on {word}{recapture[top] * 100:.0f}%, keeps {peer}.")
-    body = ("These pass-through rates look backwards: Air France-KLM's circa 85% is one quarter (Q2 2026); "
-            "Lufthansa's and IAG's ~60% are their own estimates. Light marks: at 50% pass-through "
-            f"{AIRLINE_SHORT[top]} would keep {story_eur_m_range(*_mag(net_at_low27[top]))}.")
+        headline = (f"After hedging, the shock adds {gross} to Lufthansa's 2027 fuel bill; passing on about "
+                    f"{recapture[US] * 100:.0f}% leaves {lh} net. {AIRLINE_SHORT[top]}, passing on {word}"
+                    f"{recapture[top] * 100:.0f}%, is left with {peer}.")
+    tonne = lambda a: f"EUR {_mag(per_tonne[a])[0]:.0f}{DASH}{_mag(per_tonne[a])[1]:.0f}"      # noqa: E731
+    body = (f"Per tonne of fuel the net cost is {tonne(US)} at Lufthansa, {tonne('afklm')} at {AIRLINE_SHORT['afklm']} and "
+            f"{tonne('iag')} at IAG. {AIRLINE_SHORT[top]}'s circa 85% is one quarter's actual; the other rates are the "
+            f"airlines' own estimates. At 50%, {AIRLINE_SHORT[top]} would be left with "
+            f"{story_eur_m_range(*_mag(net_at_low27[top]))}.")
     return {"headline": headline, "body": body}
 
 
@@ -230,9 +205,9 @@ def comparison_step(r27, reasons, condition, hq_swing, falling=False):
 def so_what_cards(margin, passthrough, cover, hq_swing, falling=False, pass_through_largest=True, runner_up=None):
     """Step 10 - four cards, each: one model number, one plain sentence, one observation (not advice).
 
-    pass_through_largest: from the Step 8 tornado - the 'biggest lever' title is used only if a pass-through bar is
+    pass_through_largest: from the Step 6 tornado - the 'biggest lever' title is used only if a pass-through bar is
     the largest; otherwise the card says 'a major lever' (no claim stronger than the evidence).
-    runner_up: optional qualifier under the title, e.g. 'hedge cover close behind' (Step 8, Lufthansa's own loss)."""
+    runner_up: optional qualifier under the title, e.g. 'hedge cover close behind' (Step 6, Lufthansa's own loss)."""
     ratio = (round(margin["ratio"][0]), round(margin["ratio"][1]))
     times = f"{ratio[0]}" if ratio[0] == ratio[1] else f"{ratio[0]}\u2013{ratio[1]}"
     point = 0.01 / margin["margin_us"]
@@ -275,37 +250,112 @@ def _half_up_1(value):
     return f"{_half_up(value, 0.1):.1f}"
 
 
+BAR_NAMES = {"persistence": "how much of today's shock lasts into 2027", "lh_book": "Lufthansa's hedge book (its undisclosed "
+             "2027 mix and its options)", "lh_cover": "Lufthansa's 2027 hedge cover", "lh_profit": "Lufthansa's expected profit",
+             "peer_profit": "the peers' expected profit", "peer_mix": "the peers' undisclosed hedge mix",
+             "pt_base": "what pass-through is applied to", "g": "how much of the premium gasoil hedges cover",
+             "fx": "the USD/EUR rate", "volume": "fuel volumes", "crude_share": "the crude share of the move"}
+
+
 def tornado_step(result, falling=False):
-    """Step 8 - what could change the answer. result = src/story/tornado.tornado(...)."""
+    """Step 6 - what the answer rests on. result = src/story/tornado.tornado(...).
+
+    Resolves the apparent clash with the ranking claim: no single assumption closes the gap to the peers' AVERAGE, but the
+    ranking against Air France-KLM alone can flip if its pass-through is low (the answer says so); both are stated."""
     bars = result["bars"]
     top = bars[0]
     closes = [b for b in bars if b["low"] <= 0]
     gap_word = "gains" if falling else "loses"
-    if "pass-through" in top["label"]:
+    if top["key"].startswith("pt:"):
         name = top["label"].split(" pass-through")[0]
-        headline = (f"The order depends most on pass-through: {name}'s alone changes the gap between Lufthansa and "
-                    f"its peers by {top['swing'] * 100:.0f} pp.")
+        headline = (f"The result is most sensitive to pass-through: {name}'s alone changes the gap between Lufthansa and "
+                    f"its peers by {top['swing'] * 100:.1f} pp.")
     else:
-        headline = (f"The order depends most on {top['label']}, which alone changes the gap between Lufthansa and its "
-                    f"peers by {top['swing'] * 100:.0f} pp.")
+        headline = (f"The result is most sensitive to {BAR_NAMES.get(top['key'], top['label'])}, which alone changes the "
+                    f"gap between Lufthansa and its peers by {top['swing'] * 100:.1f} pp.")
+    closest = min(bars, key=lambda b: b["low"])
     body = (f"The gap is how many points more of its expected 2027 operating profit Lufthansa {gap_word} than the "
-            f"peers on average ({result['base_gap'] * 100:.0f} pp at the base case). Each bar moves one assumption "
+            f"peers on average ({result['base_gap'] * 100:.1f} pp at the base case). Each bar moves one assumption "
             "across its range and holds the others fixed. "
-            + ("No single assumption closes the gap." if not closes else
-               f"{len(closes)} assumption{'s' if len(closes) > 1 else ''} could close it on {'their' if len(closes) > 1 else 'its'} own.")
-            )
+            + (f"No single assumption closes it; the closest, {closest['label']}, narrows it "
+               f"to {closest['low'] * 100:.1f} pp." if not closes else
+               f"{len(closes)} assumption{'s' if len(closes) > 1 else ''} could close it on {'their' if len(closes) > 1 else 'its'} own."))
     own = sorted(bars, key=lambda b: b["lh_swing"], reverse=True)
     runner = own[1] if len(own) > 1 else None
     close = bool(runner and own[0]["lh_swing"] and runner["lh_swing"] >= 0.75 * own[0]["lh_swing"])
-    return {"headline": headline, "body": body, "pass_through_largest": "pass-through" in top["label"],
+    return {"headline": headline, "body": body, "pass_through_largest": top["key"].startswith("pt:"),
             "own_top": own[0], "own_runner_up": runner, "runner_up_close": close}
+
+
+def sensitivity_table(persistence, pt_base, lh_range, flat_ranges):
+    """The one table under the tornado: choices that change the LEVELS of the answer - and, for the pass-through reading,
+    whether Lufthansa is still clearly the hardest hit. Values are % of expected 2027 operating profit; negative = a gain.
+
+    persistence = choices.persistence_table; pt_base = choices.pass_through_base; lh_range = choices.lufthansa_range;
+    flat_ranges = loss_ranges for the page's own scenario. Output: list of row dicts (formatted strings).
+    """
+    names = {US: "Lufthansa", "afklm": AIRLINE_SHORT["afklm"], "iag": "IAG"}
+
+    def row(label, ranges):
+        peers_high = max(ranges[p][1] for p in PEERS)
+        return {"If...": label, **{names[a]: story_pct_range(*ranges[a]) for a in (US, *PEERS)},
+                "Lufthansa clearly hit hardest": "yes" if ranges[US][0] > peers_high else "ranges overlap"}
+
+    rng = lambda r: {a: (r[a]["low"], r[a]["high"]) for a in (US, *PEERS)}                        # noqa: E731
+    rows = [row("the page's own case", rng(flat_ranges))]
+    for r in persistence:
+        if r["share"] < 1.0:
+            rows.append(row(f"only {r['share'] * 100:.0f}% of the shock lasts into 2027", rng(r["ranges"])))
+    rows.append(row("pass-through applies to the market price rise, not the cost after hedging",
+                    {a: pt_base[a]["share_market"] for a in (US, *PEERS)}))
+    full = lh_range["full"]
+    widest = {**rng(flat_ranges), US: (full["low"], full["high"])}
+    rows.append(row("Lufthansa's undisclosed hedge mix and an options fade are included", widest))
+    return rows
+
+
+def sensitivity_sentences(pt_base, lh_range, flat_ranges):
+    """Two sentences for the findings the table cannot say in numbers."""
+    names = {US: "Lufthansa", "afklm": AIRLINE_SHORT["afklm"], "iag": "IAG"}
+    flips = _flip_clause(pt_base, names)
+    full = lh_range["full"]
+    printed = next(v for v in lh_range["variants"] if v["name"] == "printed mix")
+    return {
+        "pass_through": ("The companies say they recover about 60-85% of 'the higher fuel cost'. If that means the market "
+                         "price rise, an airline that hedged recovers more than it lost" + flips + ". The reading decides "
+                         "the sign for the airlines that hedged most; the page uses the cost after hedging."),
+        "lufthansa": (f"Lufthansa's hedges are options, which protect less than swaps as prices rise: with its undisclosed "
+                      f"2027 mix and an options fade its range widens from {story_pct_range(printed['low'], printed['high'])} "
+                      f"to {story_pct_range(full['low'], full['high'])}."),
+    }
+
+
+def _flip_clause(pt_base, names):
+    """': X would gain instead of paying; Y could, in some hedge cases' - or '' when no sign changes."""
+    whole = [names[a] for a in pt_base if pt_base[a]["flips"] and pt_base[a]["market"][1] < 0]
+    part = [names[a] for a in pt_base if pt_base[a]["flips"] and pt_base[a]["market"][1] >= 0]
+    bits = []
+    if whole:
+        bits.append(f"{' and '.join(whole)} would gain instead of paying")
+    if part:
+        bits.append(f"{' and '.join(part)} could, in some hedge cases")
+    return ": " + "; ".join(bits) if bits else ""
+
+
+def limits_lines():
+    """The three limits that matter, on the story page (the full list is on Method & sources)."""
+    return [
+        "Options are modelled as swaps (Lufthansa's own table shows its protection fading), so its euro figures lean low.",
+        "The 2027 effect assumes the shock lasts the year, while forward prices slope down - see the table above.",
+        "The profit base is consensus taken after most of the price rise, and Air France-KLM's 85% pass-through is one quarter.",
+    ]
 
 
 CLOSE_TO_THRESHOLD = 0.9      # not material, but at least this fraction of the threshold in some case: say so
 
 
 def materiality_step(p27):
-    """Would an always-on monitor raise an alert? The brief's rule (02_SPEC.md): material when the hit is at least 5% of
+    """Would an always-on monitor raise an alert? The brief's rule: material when the hit is at least 5% of
     expected operating profit or 5% of consensus EPS. p27: {airline: profit_cases rows for FY2027}.
 
     Each hedging case is tested; an airline is 'yes' if every case is material, 'no' if none is, otherwise 'depends'

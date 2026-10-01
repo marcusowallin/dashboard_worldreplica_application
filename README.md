@@ -9,20 +9,24 @@ and IAG, and what does it do to each company's earnings per share versus consens
 ## What it shows
 Three pages. **The story** asks the question first and builds the answer from the bottom up, so the conclusion is
 earned before it is stated:
-1. **The question.** Jet fuel is up since 27 July; is Lufthansa hit harder than its rivals?
-2. **The evidence.** How big the move is; what it is made of (crude oil or the refining premium, which a crude hedge
-   does not cover); how much of each airline's fuel is actually protected.
-3. **The analysis.** The extra fuel bill after hedging; how much airlines recover through fares; what is left of
-   profit, margin and EPS; and why the three differ.
-4. **The assumptions.** Which one could change the order, shown as a bar per assumption.
-5. **The answer**, a fixed-template sentence filled with model outputs (never written by AI), with the confidence
-   label next to it. A ranking or driver is named only if it holds across the whole range of assumptions.
-6. **What it means**, including whether an always-on monitor would raise an alert (a hit of at least 5% of
-   expected operating profit or EPS), and a set of controls to change the scenario yourself.
+1. **The question.** Jet fuel is up since 27 July; is Lufthansa hit harder than its rivals? The page applies one
+   hypothetical shock (USD 100 a tonne) to all three airlines and says so up front.
+2. **The evidence** (steps 1-2). How big the move is and what it is made of (crude oil or the jet premium, which a
+   crude hedge does not cover); how much of each airline's fuel is actually protected.
+3. **The analysis** (steps 3-5). The fuel bill after hedging and what fares give back; what is left of profit and EPS;
+   why the three differ.
+4. **What the result rests on** (step 6). A tornado of the assumptions, plus the choices that change the levels - how much
+   of the shock lasts into 2027, what "pass-through" is applied to (for Air France-KLM it decides whether it pays or
+   gains), Lufthansa's undisclosed hedge mix and its options - and a short list of what the model cannot tell you.
+5. **The answer** (step 7), a template sentence filled with model outputs (never written by AI), with the confidence
+   score next to it. A ranking or driver is named only if it holds across the whole range of assumptions.
+6. **What it means** (step 8), including whether an always-on monitor would raise an alert (a hit of at least 5% of
+   expected operating profit or EPS), and **controls to change the scenario yourself** (step 9).
 
-**Method & sources** holds every source, assumption and check behind the numbers; small markers in the story link to
-the matching entry. The **News room** is a separate prototype: an AI model labels headlines about the airlines and
-jet fuel, every quote is checked against the headline in code, and nothing from it feeds a number in the story.
+**Method & sources** holds every source, assumption and check behind the numbers, including how the confidence score
+is calculated; small markers in the story link to the matching entry. The **News room** is a separate prototype: an AI
+model labels headlines about the airlines and jet fuel, every quote is checked against the headline in code, and nothing
+from it feeds a number in the story.
 
 ## How it works (pipeline)
 The pipeline follows the six steps of a typical always-on impact monitor, on a small scale:
@@ -73,7 +77,7 @@ Company PDFs are not republished; the page links to the originals with page numb
 - **T4 - independent EPS reconciliation** from printed inputs (automated test).
 - **T9 - fuel bill reconciliation**: Lufthansa volume x price after hedge = EUR 8.48bn vs printed fossil
   fuel expense EUR 8.46bn (+0.2%). Not possible or not independent for the peers (explained on the page).
-- **Tests**: 290 automated tests (`pytest`), including a run of the page itself; the network is mocked.
+- **Tests**: 320 automated tests (`pytest`), including a run of the page itself; the network is mocked.
 
 ## Limitations
 Spot moves as a parallel shift of the forward curve; US Gulf Coast jet as proxy for European jet; options
@@ -91,8 +95,9 @@ FY2027 hedge cover not printed as of the baseline date. Full list on the page.
 
 ## Ideas for improvement
 - Licensed European jet fuel (NWE CIF) and forward curves instead of spot proxies.
-- A licensed consensus API (EPS, EBIT, revenue with per-estimate dates) instead of dated page snapshots
-  refreshed by hand - the provider pages block automated access.
+- One source of truth for consensus: every consensus input (EPS, EBIT, revenue) from MarketScreener or a similar
+  provider, on one date and read by one method. A licensed API with per-estimate dates would make the refresh
+  automatic - the provider pages block automated access, so snapshots are saved by hand today.
 - Market-reaction validation (share prices on fuel-event days). Not in v1: free price feeds such as
   Tiingo's standard plans are licensed for internal use only, not public display.
 - Monte Carlo over the uncertain assumptions (g, recapture, FY2027 volume) for an EPS range.
@@ -100,11 +105,26 @@ FY2027 hedge cover not printed as of the baseline date. Full list on the page.
 - Quarterly capacity (ASK) weighting instead of equal quarters; more carriers (Ryanair, Turkish, Gulf).
 - Adversarial reviewer agent that challenges every alert before it is shown.
 
+## Deploy (Streamlit Community Cloud)
+Main file `app.py`; Python 3.14 if offered (the pins were tested on 3.14.7; CI also runs 3.13). The runtime needs only
+`requirements.txt`. The app runs without secrets; to switch the News room's AI labels on, add `ANTHROPIC_API_KEY` in the
+app's secrets and set a spending limit for the key in the Anthropic console (the app also caps its own calls: 20 tagging
+calls a day, 5 web searches a day, shared by all visitors, kept in memory).
+
+## Data and licences
+Prices: FRED (jet fuel `DJFUELUSGULF`, Brent `DCOILBRENTEU`) and the ECB reference rate via Frankfurter, fetched live.
+News headlines: GDELT. Company figures are typed into `data/airlines.yaml` from the companies' own reports, each with
+document, page and quote; the reports themselves are not republished. Consensus figures from MarketScreener are
+transcribed by hand with a snapshot date; no screenshots or tables are redistributed. Fonts load from Google Fonts at
+runtime. Check each provider's terms before reusing the data.
+
 ## Run locally
 ```bash
 python3.14 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt          # enough to run the app
 streamlit run app.py
+pip install -r requirements-dev.txt      # adds the test tools
 python -m pytest
 ```
+Changes under `src/` need the app restarted: Streamlit does not reload imported modules.

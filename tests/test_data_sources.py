@@ -100,3 +100,30 @@ def test_load_live_prices_ok_and_failure():
     assert live["ok"] and live["moves"]["latest_day"] == date(2026, 9, 22)
     down = load_live_prices(date(2026, 7, 27), failing_get)
     assert not down["ok"] and len(down["errors"]) == 3 and down["moves"] is None
+
+
+def test_a_feed_outage_is_remembered_for_a_minute_and_update_data_tries_again(monkeypatch):
+    """During an outage every page rerun must not wait for three slow requests: the failure is cached for DOWN_CACHE_S."""
+    import src.data_sources as ds
+    import src.live_state as ls
+    import streamlit as st
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    calls = []
+
+    def failing(day, **kwargs):
+        calls.append(day)
+        return {"ok": False, "errors": ["FRED answered HTTP 500"]}
+
+    monkeypatch.setattr(ds, "load_live_prices", failing)
+    live, fetched, notice = ls.current_prices()
+    assert live is None and "unavailable" in notice and len(calls) == 1
+    ls.current_prices()
+    ls.current_prices()
+    assert len(calls) == 1                                       # remembered: no new requests within the minute
+    assert ls.DOWN_CACHE_S == 60 and ds.TIMEOUT_S == 10
+    ls.update_prices()                                           # the visitor asks explicitly
+    ls.current_prices()
+    assert len(calls) == 2
+    st.cache_data.clear()
+    st.cache_resource.clear()

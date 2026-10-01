@@ -5,7 +5,7 @@ gatherUsageStats = false
 [client]
 toolbarMode = "minimal"   # no Deploy button / developer menu for visitors
 
-# Design system (DESIGN_BRIEF.md sections 2-3). Colours mirror src/ui/theme.py - change both together.
+# Design system (design notes). Colours mirror src/ui/theme.py - change both together.
 [theme]
 base = "dark"
 primaryColor = "#2DD4E0"

@@ -1,4 +1,4 @@
-"""Design tokens (DESIGN_BRIEF.md sections 2-3): one place for colours, fonts and airline labels.
+"""Design tokens (design notes): one place for colours, fonts and airline labels.
 
 .streamlit/config.toml repeats the base colours for Streamlit's own widgets - change both together.
 Colour never carries meaning alone: every airline is also named in text, "Lufthansa (us)".

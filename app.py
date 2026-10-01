@@ -12,5 +12,5 @@ pages = st.navigation(
     [st.Page("story.py", title="Story", default=True),
      st.Page("method.py", title="Method & sources", url_path="method"),
      st.Page("news.py", title="News room", url_path="news")],
-    position="hidden")        # the story links to the method page itself (markers, footer); no sidebar menu
+    position="top")           # three tabs along the top; the story also links to the other pages (markers, footer)
 pages.run()

@@ -47,7 +47,7 @@ def test_real_file_loads_and_fields_are_identical():
 
 def test_real_file_values_as_printed():
     twins = load_twins()
-    assert get_value(twins, "lufthansa", "hedge_ratio_rest_fy26") == 82
+    assert get_value(twins, "lufthansa", "hedge_ratio_rest_fy26") == 81
     assert get_field(twins, "lufthansa", "hedge_ratio_rest_fy26")["unit"] == "%"
     assert get_value(twins, "iag", "eps_fy25") == 69.5  # EUR cents, as printed
 
@@ -119,7 +119,7 @@ def test_every_allowed_unit_has_a_conversion():
 
 def test_model_values_are_converted():
     twins = load_twins()
-    assert get_model_value(twins, "lufthansa", "hedge_ratio_rest_fy26") == pytest.approx(0.82)
+    assert get_model_value(twins, "lufthansa", "hedge_ratio_rest_fy26") == pytest.approx(0.81)
     assert get_model_value(twins, "lufthansa", "fuel_volume_fy26") == pytest.approx(9_420_000)
     assert get_model_value(twins, "iag", "diluted_shares") == 5_031_980_000
     assert get_model_value(twins, "iag", "eps_fy25") == pytest.approx(0.695)

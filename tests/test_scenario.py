@@ -13,7 +13,7 @@ from src.story.costs import cost_cases, summary
 from src.story.hero import build_hero, condition_sentence
 from src.story.profit import profit_cases, span
 from src.story.scenario import apply_overrides, preset_split
-from src.story.steps import comparison_step, cost_step, passthrough_step, profit_step, tornado_step
+from src.story.steps import bill_step, comparison_step, profit_step, tornado_step
 from src.story.tornado import base_params, gap, losses, tornado
 from src.twins import get_model_value, load_twins
 from src.ui.format import story_eur_m_range, story_pct_range
@@ -51,19 +51,16 @@ def test_presets_split_like_the_benchmark():
 def test_falling_price_wording_in_hero_and_steps():
     split = (-51.0, -49.0)
     hero = build_hero(TWINS, FX, split, as_of_label="x")
-    assert hero["sentence"].startswith("Scenario: jet fuel −USD 100/t. That saves Lufthansa about *EUR")
+    assert hero["sentence"].startswith("A hypothetical jet fuel fall of −USD 100/t saves Lufthansa about *EUR")
     assert "passes on less of the saving" in hero["why"] and "would gain as much" in hero["why"]
     rise = build_hero(TWINS, FX, (51.0, 49.0), as_of_label="x")
     assert [r["share"] for r in hero["rows"]] == [r["share"] for r in rise["rows"]]          # same magnitudes
-    c27, c26 = cost_cases(TWINS, "FY2027", FX, split), cost_cases(TWINS, "FY2026", FX, split)
-    from src.story.costs import size_neutral
-    g27 = {a: summary(r, "gross") for a, r in c27.items()}
-    neutral = {a: size_neutral(TWINS, a, *g27[a]) for a in AIRLINES}
-    assert "cuts EUR" in cost_step(g27, {a: summary(r, "gross") for a, r in c26.items()}, neutral, True)["headline"]
-    pt = passthrough_step({a: summary(r, "net") for a, r in c27.items()},
-                          {a: get_model_value(TWINS, a, "recapture_rate") for a in AIRLINES},
-                          {a: summary(r, "net_at_low") for a, r in c27.items()}, True)
-    assert "of the saving to passengers" in pt["headline"] and "better off" in pt["headline"]
+    c27 = cost_cases(TWINS, "FY2027", FX, split)
+    from src.story.choices import net_cost_per_tonne
+    bill = bill_step({a: summary(r, "gross") for a, r in c27.items()}, {a: summary(r, "net") for a, r in c27.items()},
+                     {a: get_model_value(TWINS, a, "recapture_rate") for a in AIRLINES},
+                     {a: summary(r, "net_at_low") for a, r in c27.items()}, net_cost_per_tonne(TWINS, FX, split), True)
+    assert "the fall cuts" in bill["headline"] and "of the saving" in bill["headline"] and "better off" in bill["headline"]
     ps = profit_step(profit_cases(TWINS, "FY2027", FX, split), True)
     assert ps["headline"].startswith("Same fuel relief, different gain: margins rise by under 1 pp at all three")
     assert "+0.5 to +0.6 pp" in ps["body"]
@@ -104,7 +101,7 @@ def test_tornado_base_and_ordering():
     split = (51.0, 49.0)
     result = tornado(TWINS, FX, split, (0.14, 0.76))
     swings = [b["swing"] for b in result["bars"]]
-    assert swings == sorted(swings, reverse=True) and len(result["bars"]) == 11
+    assert swings == sorted(swings, reverse=True) and len(result["bars"]) == 14
     assert result["bars"][0]["label"].startswith("Air France-KLM pass-through")       # the largest lever
     assert tornado_step(result)["pass_through_largest"] is True
     # the base gap is the loss gap at the middle of Lufthansa's hedge range, peers central - by hand
@@ -113,6 +110,21 @@ def test_tornado_base_and_ordering():
     assert result["base_gap"] == pytest.approx(gap(losses(TWINS, FX, split, p)))
     # each bar contains the base value
     assert all(b["low"] - 1e-12 <= result["base_gap"] <= b["high"] + 1e-12 for b in result["bars"])
+
+
+def test_tornado_new_bars_persistence_lufthansa_book_and_pass_through_base():
+    split = (51.0, 49.0)
+    result = tornado(TWINS, FX, split, (0.14, 0.76))
+    bars = {b["key"]: b for b in result["bars"]}
+    assert {"persistence", "lh_book", "pt_base"} <= set(bars)
+    # the model is linear in the move: half the shock persisting halves the gap exactly, and 100% is the base
+    assert bars["persistence"]["low"] == pytest.approx(result["base_gap"] / 2)
+    assert bars["persistence"]["high"] == pytest.approx(result["base_gap"])
+    # Lufthansa's book: an options fade makes it lose MORE (gap up), all-gasoil LESS (gap down), the base sits between
+    assert bars["lh_book"]["low"] < result["base_gap"] < bars["lh_book"]["high"]
+    # pass-through on the market price shrinks every loss; the gap to the peers barely moves, but Lufthansa's own loss does
+    assert bars["pt_base"]["lh_low"] < bars["pt_base"]["lh_high"] and bars["pt_base"]["swing"] < 0.01
+    assert bars["pt_base"]["lh_swing"] > 0.04
 
 
 def test_tornado_bar_ends_by_hand_for_lufthansa_profit():
@@ -143,14 +155,14 @@ def _html(at):
 
 def test_page_presets_and_reset(page):
     at = page
-    assert not at.exception and "That adds about" in _html(at)
+    assert not at.exception and "adds about" in _html(at)
     at.button(key="preset--100").click().run()
-    assert not at.exception and "That saves Lufthansa about" in _html(at)
-    assert "Same fuel relief, different gain" in _html(at) and "changed in Step 11" in _html(at)
+    assert not at.exception and "saves Lufthansa about" in _html(at)
+    assert "Same fuel relief, different gain" in _html(at) and "changed in Step 9" in _html(at)
     at.button(key="preset-+200").click().run()
-    assert "Scenario: jet fuel +USD 200/t." in _html(at)
+    assert "A hypothetical jet fuel rise of +USD 200/t" in _html(at)
     at.button(key="scenario-reset").click().run()
-    assert "Scenario: jet fuel +USD 100/t." in _html(at) and "changed in Step 11" not in _html(at)
+    assert "A hypothetical jet fuel rise of +USD 100/t" in _html(at) and "changed in Step 9" not in _html(at)
 
 
 def test_page_sliders_drive_every_number(page):
@@ -190,6 +202,6 @@ def test_page_news_room_and_footer(monkeypatch):
     at = AppTest.from_file(NEWS, default_timeout=60).run()
     at.button(key="cta-news").click().run()
     html = _html(at)
-    assert client.calls == 1 and "verified quote" in html and 'href="./#step-06"' in html and 'href="./#step-03"' in html
+    assert client.calls == 1 and "verified quote" in html and 'href="./#step-04"' in html and 'href="./#step-02"' in html
     st.cache_data.clear()
     st.cache_resource.clear()

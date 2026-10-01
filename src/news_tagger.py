@@ -1,11 +1,11 @@
-"""News room agent: GDELT headlines -> Claude classification -> evidence check in code (02_SPEC.md).
+"""News room agent: GDELT headlines -> Claude classification -> evidence check in code.
 
 The AI only CLASSIFIES headlines (airlines, driver, direction, severity, verbatim evidence). It never
 produces numbers used by the model. Headlines are untrusted input: they are passed as data inside
 tags, the prompt says to ignore instructions in them, the output is constrained to a JSON schema,
 and every tag is checked in code before it is shown.
 
-Cost guards (the app is public and uses the owner's API key):
+Cost guards (the app is public and uses the maintainer's API key):
   - refresh on click only, with a cooldown shared by all visitors (NewsStore is one shared object)
   - at most MAX_PER_REFRESH headlines per refresh, and only headlines not tagged before
   - one API call per refresh (all headlines in one request); a daily cap on API calls
@@ -20,21 +20,27 @@ from datetime import datetime, timedelta
 
 import requests
 
-from src.news_keywords import keep, merge_sources, outlet_name
+from src.news_keywords import MAJOR_OUTLETS, OUTLETS, keep, merge_sources, outlet_name
 
-MODEL = "claude-haiku-4-5-20251001"            # 02_SPEC.md "News room"
+MODEL = "claude-haiku-4-5-20251001"
 MAX_PER_REFRESH = 20
-COOLDOWN = timedelta(minutes=10)
+COOLDOWN = timedelta(minutes=10)                # after a SUCCESSFUL refresh
+RETRY_AFTER_FAILURE = timedelta(seconds=45)     # after a FAILED fetch (GDELT answers 429 to many cloud addresses)
+CLIENT_TIMEOUT_S = 30.0                          # tagging call
+WEB_SEARCH_TIMEOUT_S = 90.0                      # a web search with up to 3 searches needs longer
+CLIENT_RETRIES = 1
+GDELT_TIMEOUT_S = 20
+MAJOR_DOMAINS = [domain for domain, name in OUTLETS.items() if name in MAJOR_OUTLETS]   # enforced, not just a prompt hint
 DAILY_CALL_CAP = 20
 MAX_TOKENS = 4000
 
 AIRLINES = ("lufthansa", "afklm", "iag")
 DRIVERS = ("fuel_price", "jet_premium", "hedging", "pass_through", "capacity", "guidance", "disruption", "other")
-# Which story step each driver belongs to (Step 11 links a headline there). Decision 1 Oct 2026.
-DRIVER_STEPS = {"fuel_price": (1, "fuel price"), "jet_premium": (2, "jet premium / refining"),
-                "hedging": (3, "hedging"), "pass_through": (5, "pass-through: fares and surcharges"),
-                "capacity": (4, "capacity"), "guidance": (6, "guidance and profit"),
-                "disruption": (7, "airspace / disruption"), "other": (None, "other")}
+# Which story step each driver belongs to (the News room links a headline there). Decision 1 Oct 2026; renumbered 2 Oct 2026.
+DRIVER_STEPS = {"fuel_price": (1, "fuel price"), "jet_premium": (1, "jet premium / refining"),
+                "hedging": (2, "hedging"), "pass_through": (3, "pass-through: fares and surcharges"),
+                "capacity": (3, "capacity"), "guidance": (4, "guidance and profit"),
+                "disruption": (5, "airspace / disruption"), "other": (None, "other")}
 DIRECTIONS = ("cost_up", "cost_down", "unclear")
 IMPACTS = ("positive", "negative", "neutral")   # per airline, its own earnings view; 'neutral' also = unclear (D8b)
 
@@ -118,7 +124,8 @@ class NewsStore:
     """Shared state for all visitors: tag cache, last refresh time, daily call counter, current set."""
     tags: dict = field(default_factory=dict)          # headline key -> validated tag
     headlines: list = field(default_factory=list)     # current displayed set
-    last_refresh: datetime = None
+    last_refresh: datetime = None                      # last SUCCESSFUL refresh (starts the 10-minute cooldown)
+    last_failure: datetime = None                      # last failed fetch (starts only a short retry window)
     calls_by_day: dict = field(default_factory=dict)  # "YYYY-MM-DD" -> number of API calls
     last_message: str = "Not refreshed yet."
     web_last: datetime = None                          # 'Search the web' shared cooldown and daily cap
@@ -165,7 +172,7 @@ def _gdelt(get, query, max_records):
     params = {"query": f"{query} (sourcelang:english OR sourcelang:german OR sourcelang:french)", "mode": "ArtList",
               "format": "json", "maxrecords": max_records, "timespan": "3d", "sort": "DateDesc"}
     try:
-        response = get(GDELT_URL, params=params, timeout=20,
+        response = get(GDELT_URL, params=params, timeout=GDELT_TIMEOUT_S,
                        headers={"User-Agent": "fuel-shock-monitor (research prototype)"})
         response.raise_for_status()
         return response.json().get("articles", []), None
@@ -272,7 +279,7 @@ def make_client(secret_lookup=None):
     if not key or "your-key-here" in key or key.strip() in ("sk-ant-...", ""):   # unset or the template placeholder
         return None
     import anthropic
-    return anthropic.Anthropic(api_key=key, timeout=30.0, max_retries=1)
+    return anthropic.Anthropic(api_key=key, timeout=CLIENT_TIMEOUT_S, max_retries=CLIENT_RETRIES)
 
 
 def refresh(store, now, fetch=None, client=None):
@@ -296,11 +303,16 @@ def _refresh_locked(store, now, fetch, client):
         wait = store.last_refresh + COOLDOWN
         store.last_message = f"Refreshed recently; next refresh possible at {wait:%H:%M}. Showing the cached set."
         return store.last_message
+    if store.last_failure and now - store.last_failure < RETRY_AFTER_FAILURE:
+        seconds = int((RETRY_AFTER_FAILURE - (now - store.last_failure)).total_seconds()) + 1
+        store.last_message = f"The last fetch failed; try again in {seconds} s. Showing the cached set."
+        return store.last_message
     headlines, error = fetch()
-    store.last_refresh = now
-    if error:
+    if error:                                     # a failed fetch must not lock the button for ten minutes
+        store.last_failure = now
         store.last_message = f"{error} Showing the cached set."
         return store.last_message
+    store.last_refresh, store.last_failure = now, None
     fetched = len(headlines)
     kept = keep(headlines)                                                # keyword rule first: no AI cost
     store.filtered_out = fetched - len(kept)
@@ -349,6 +361,9 @@ WEB_SEARCH_PROMPT = (
     "Answer with one short line; the search results themselves are what we use.")
 
 
+WEB_TIMEOUT_MESSAGE = "The AI service did not answer in time."          # not counted against the daily cap
+
+
 def search_web(client, max_uses=WEB_SEARCH_MAX_USES):
     """Headlines from Anthropic's web search tool: title, URL, outlet domain, page age - no article text is kept.
 
@@ -358,11 +373,14 @@ def search_web(client, max_uses=WEB_SEARCH_MAX_USES):
     import anthropic
     from urllib.parse import urlparse
     try:
-        response = client.messages.create(
+        response = client.with_options(timeout=WEB_SEARCH_TIMEOUT_S).messages.create(
             model=MODEL, max_tokens=512,
             messages=[{"role": "user", "content": WEB_SEARCH_PROMPT}],
-            tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses}],
+            tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses,
+                    "allowed_domains": MAJOR_DOMAINS}],
         )
+    except anthropic.APITimeoutError:
+        return [], WEB_TIMEOUT_MESSAGE, 0
     except anthropic.AuthenticationError:
         return [], "The API key was rejected.", 0
     except anthropic.RateLimitError:
@@ -408,9 +426,12 @@ def refresh_web(store, now, client, search=None):
         if store.web_calls_by_day.get(day, 0) >= WEB_SEARCH_DAILY_CAP:
             store.web_message = f"Daily cap of {WEB_SEARCH_DAILY_CAP} web searches reached."
             return store.web_message
-        store.web_last = now
-        store.web_calls_by_day[day] = store.web_calls_by_day.get(day, 0) + 1
         found, error, used = (search or search_web)(client)
+        if error in (WEB_TIMEOUT_MESSAGE, "The AI service could not be reached."):
+            store.web_message = f"Web search failed: {error} It was not counted against today's limit."
+            return store.web_message
+        store.web_last = now                                   # counted from here: the service did receive the request
+        store.web_calls_by_day[day] = store.web_calls_by_day.get(day, 0) + 1
         if error:
             store.web_message = f"Web search failed: {error}"
             return store.web_message
@@ -442,13 +463,17 @@ def seven_day_summary(store, now, days=SUMMARY_DAYS):
              "untagged": n}. Collected = first seen by this app (GDELT covers 3 days, web search 7 days); the
     archive lives in memory, so a restart of the app starts it again.
     """
-    recent = [(k, h) for k, (h, first) in store.archive.items() if now - first <= timedelta(days=days)]
+    snapshot = list(store.archive.items())              # one atomic copy: a refresh may add to the archive meanwhile
+    recent = [(k, h) for k, (h, first) in snapshot if now - first <= timedelta(days=days)]
     impacts = {a: {"negative": 0, "positive": 0, "neutral": 0} for a in AIRLINES}
-    drivers, relevant, untagged = {}, 0, 0
+    drivers, relevant, untagged, unconfirmed = {}, 0, 0, 0
     for key, _ in recent:
         tag = store.tags.get(key)
         if tag is None:
             untagged += 1
+            continue
+        if not tag.get("evidence_ok", True):            # the quote was not found in the headline: not counted
+            unconfirmed += 1
             continue
         if not tag["relevant"]:
             continue
@@ -457,7 +482,8 @@ def seven_day_summary(store, now, days=SUMMARY_DAYS):
         for airline, impact in tag.get("impacts", {}).items():
             impacts[airline][impact] += 1
     top = max(drivers, key=drivers.get) if drivers else None
-    return {"headlines": relevant, "impacts": impacts, "top_driver": top, "untagged": untagged}
+    return {"headlines": relevant, "impacts": impacts, "top_driver": top, "untagged": untagged,
+            "unconfirmed": unconfirmed}
 
 
 def tagged_view(store):

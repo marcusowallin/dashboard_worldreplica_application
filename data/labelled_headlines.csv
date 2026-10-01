@@ -1,23 +1,23 @@
 id,title,url,collected,label_relevant,label_airlines,label_driver,label_direction,label_severity,label_impact
-1,Lufthansa CEO says jet fuel hit to top €1.5bn forecast,https://www.timeslive.co.za/news/world/2026-09-29-lufthansa-ceo-says-jet-fuel-hit-to-top-15bn-forecast/,2026-09-30 web news search,,,,,,
-2,Lufthansa maintains outlook despite €1.7bn fuel cost hit,https://www.itij.com/latest/news/lufthansa-maintains-outlook-despite-eu17bn-fuel-cost-hit,2026-09-30 web news search,,,,,,
-3,Lufthansa’s Fuel Bill Is Set To Top €1.5 Billion,https://finimize.com/content/lufthansas-fuel-bill-is-set-to-top-15-billion,2026-09-30 web news search,,,,,,
-4,Rising Jet Fuel Costs Weigh Even More Heavily on Lufthansa,https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/,2026-09-30 web news search,,,,,,
-5,Lufthansa Strike Update Today 2026: Live Status & Latest News,https://blog.wego.com/lufthansa-strike/,2026-09-30 web news search,,,,,,
-6,Air France-KLM Q2 2026 Results,https://www.manilatimes.net/2026/07/30/tmt-newswire/globenewswire/air-france-klm-q2-2026-results/2394649,2026-09-30 web news search,,,,,,
-7,Air France-KLM Slows 2026 Expansion as Fuel Bill Jumps $2.4B,https://www.altexsoft.com/travel-industry-news/air-france-klm-slows-2026-expansion-as-fuel-bill-jumps-2-4b/,2026-09-30 web news search,,,,,,
-8,"Air France-KLM Beats Q2 Expectations, Cuts Capacity Growth Again",https://www.airwaysmag.com/new-post/air-france-klm-q2-2026-results-capacity-cut,2026-09-30 web news search,,,,,,
-9,Schiphol and KLM strengthen joint approach to winter weather,https://news.schiphol.com/schiphol-and-klm-strengthen-joint-approach-to-winter-weather/,2026-09-30 web news search,,,,,,
-10,Plans for Schiphol redevelopment present opportunities for KLM,https://news.klm.com/plans-for-schiphol-redevelopment-present-opportunities-for-klm/,2026-09-30 web news search,,,,,,
-11,Impact of Winter Weather on KLM Flights,https://news.klm.com/impact-of-winter-weather-on-klm-flights/,2026-09-30 web news search,,,,,,
-12,British Airways warns of ticket price hikes amid fuel crisis,https://www.arabianbusiness.com/business/transport/british-airways-warns-of-ticket-price-hikes-amid-fuel-crisis,2026-09-30 web news search,,,,,,
-13,IAG Cuts 2026 Capacity Outlook as Fuel Bill Forecast Eases,https://www.airwaysmag.com/new-post/iag-2026-capacity-outlook-fuel-bill-forecast,2026-09-30 web news search,,,,,,
-14,IAG Pumps The Brakes On 2026 Capacity Growth,https://finimize.com/content/iags-profits-fell-as-fuel-bills-climbed,2026-09-30 web news search,,,,,,
-15,IAG Predicts More Fare Increases Amid Elevated Fuel Costs,https://www.businesstravelnews.com/Intelligence/IAG-Predicts-More-Fare-Increases-Amid-Elevated-Fuel-Costs,2026-09-30 web news search,,,,,,
-16,Airline stocks will have to grapple with jetfuel crisis,https://www.thearmchairtrader.com/features/airline-stocks-jetfuel-crisis/,2026-09-30 web news search,,,,,,
-17,Jet fuel price surge could spark airline dealmaking,https://www.axios.com/2026/04/29/jet-fuel-airline-dealmaking,2026-09-30 web news search,,,,,,
-18,"European jet fuel prices ease, but supply risks remain",https://www.spglobal.com/energy/en/news-research/latest-news/refined-products/062926-european-jet-fuel-prices-ease-but-supply-risks-remain,2026-09-30 web news search,,,,,,
-19,Jet fuel bidding war breaks out as airlines face global stress test,https://www.cnbc.com/2026/04/29/flight-cancellations-ryanair-easyjet-british-airways-jet-fuel-lufthansa.html,2026-09-30 web news search,,,,,,
-20,SE Asia airports benefit from Mideast flight shutdowns,https://www.airhelp.co.uk/flight-disruptions/middle-east-airspace-closures-reroute-flights-via-se-asia-04032026/,2026-09-30 web news search,,,,,,
-21,Latest update: Middle East airspace restrictions crisis,https://www.airlineratings.com/articles/latest-update-middle-east-airspace-restrictions-crisis-,2026-09-30 web news search,,,,,,
-22,Alaska Air bets on premium travel to boost profit as fuel costs bite,https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/,2026-09-30 web news search,,,,,,
+1,Lufthansa CEO says jet fuel hit to top €1.5bn forecast,https://www.timeslive.co.za/news/world/2026-09-29-lufthansa-ceo-says-jet-fuel-hit-to-top-15bn-forecast/,2026-09-30 web news search,yes,lufthansa,guidance,cost_up,3,lufthansa:negative
+2,Lufthansa maintains outlook despite €1.7bn fuel cost hit,https://www.itij.com/latest/news/lufthansa-maintains-outlook-despite-eu17bn-fuel-cost-hit,2026-09-30 web news search,yes,lufthansa,guidance,cost_up,2,lufthansa:neutral
+3,Lufthansa’s Fuel Bill Is Set To Top €1.5 Billion,https://finimize.com/content/lufthansas-fuel-bill-is-set-to-top-15-billion,2026-09-30 web news search,yes,lufthansa,guidance,cost_up,3,lufthansa:negative
+4,Rising Jet Fuel Costs Weigh Even More Heavily on Lufthansa,https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/,2026-09-30 web news search,yes,lufthansa,fuel_price,cost_up,2,lufthansa:negative
+5,Lufthansa Strike Update Today 2026: Live Status & Latest News,https://blog.wego.com/lufthansa-strike/,2026-09-30 web news search,yes,lufthansa,disruption,unclear,2,lufthansa:negative
+6,Air France-KLM Q2 2026 Results,https://www.manilatimes.net/2026/07/30/tmt-newswire/globenewswire/air-france-klm-q2-2026-results/2394649,2026-09-30 web news search,yes,afklm,guidance,unclear,2,afklm:neutral
+7,Air France-KLM Slows 2026 Expansion as Fuel Bill Jumps $2.4B,https://www.altexsoft.com/travel-industry-news/air-france-klm-slows-2026-expansion-as-fuel-bill-jumps-2-4b/,2026-09-30 web news search,yes,afklm,capacity,cost_up,2,afklm:negative
+8,"Air France-KLM Beats Q2 Expectations, Cuts Capacity Growth Again",https://www.airwaysmag.com/new-post/air-france-klm-q2-2026-results-capacity-cut,2026-09-30 web news search,yes,afklm,guidance,unclear,2,afklm:positive
+9,Schiphol and KLM strengthen joint approach to winter weather,https://news.schiphol.com/schiphol-and-klm-strengthen-joint-approach-to-winter-weather/,2026-09-30 web news search,no,,,,,
+10,Plans for Schiphol redevelopment present opportunities for KLM,https://news.klm.com/plans-for-schiphol-redevelopment-present-opportunities-for-klm/,2026-09-30 web news search,no,,,,,
+11,Impact of Winter Weather on KLM Flights,https://news.klm.com/impact-of-winter-weather-on-klm-flights/,2026-09-30 web news search,yes,afklm,disruption,unclear,1,afklm:negative
+12,British Airways warns of ticket price hikes amid fuel crisis,https://www.arabianbusiness.com/business/transport/british-airways-warns-of-ticket-price-hikes-amid-fuel-crisis,2026-09-30 web news search,yes,iag,pass_through,cost_up,2,iag:neutral
+13,IAG Cuts 2026 Capacity Outlook as Fuel Bill Forecast Eases,https://www.airwaysmag.com/new-post/iag-2026-capacity-outlook-fuel-bill-forecast,2026-09-30 web news search,yes,iag,capacity,cost_down,2,iag:neutral
+14,IAG Pumps The Brakes On 2026 Capacity Growth,https://finimize.com/content/iags-profits-fell-as-fuel-bills-climbed,2026-09-30 web news search,yes,iag,capacity,unclear,1,iag:neutral
+15,IAG Predicts More Fare Increases Amid Elevated Fuel Costs,https://www.businesstravelnews.com/Intelligence/IAG-Predicts-More-Fare-Increases-Amid-Elevated-Fuel-Costs,2026-09-30 web news search,yes,iag,pass_through,cost_up,2,iag:neutral
+16,Airline stocks will have to grapple with jetfuel crisis,https://www.thearmchairtrader.com/features/airline-stocks-jetfuel-crisis/,2026-09-30 web news search,yes,lufthansa;afklm;iag,fuel_price,cost_up,2,lufthansa:negative;afklm:negative;iag:negative
+17,Jet fuel price surge could spark airline dealmaking,https://www.axios.com/2026/04/29/jet-fuel-airline-dealmaking,2026-09-30 web news search,yes,lufthansa;afklm;iag,fuel_price,cost_up,2,lufthansa:negative;afklm:negative;iag:negative
+18,"European jet fuel prices ease, but supply risks remain",https://www.spglobal.com/energy/en/news-research/latest-news/refined-products/062926-european-jet-fuel-prices-ease-but-supply-risks-remain,2026-09-30 web news search,yes,lufthansa;afklm;iag,fuel_price,cost_down,1,lufthansa:neutral;afklm:neutral;iag:neutral
+19,Jet fuel bidding war breaks out as airlines face global stress test,https://www.cnbc.com/2026/04/29/flight-cancellations-ryanair-easyjet-british-airways-jet-fuel-lufthansa.html,2026-09-30 web news search,yes,lufthansa;afklm;iag,jet_premium,cost_up,2,lufthansa:negative;afklm:negative;iag:negative
+20,SE Asia airports benefit from Mideast flight shutdowns,https://www.airhelp.co.uk/flight-disruptions/middle-east-airspace-closures-reroute-flights-via-se-asia-04032026/,2026-09-30 web news search,no,,,,,
+21,Latest update: Middle East airspace restrictions crisis,https://www.airlineratings.com/articles/latest-update-middle-east-airspace-restrictions-crisis-,2026-09-30 web news search,yes,lufthansa;afklm;iag,disruption,unclear,2,lufthansa:negative;afklm:negative;iag:negative
+22,Alaska Air bets on premium travel to boost profit as fuel costs bite,https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/,2026-09-30 web news search,no,,,,,

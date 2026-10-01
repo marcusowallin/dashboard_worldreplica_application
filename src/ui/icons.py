@@ -1,4 +1,4 @@
-"""Our own 7x7 dot-grid icons (DESIGN_BRIEF.md section 4) - simple shapes drawn in code, one per story step.
+"""Our own 7x7 dot-grid icons (design notes) - simple shapes drawn in code, one per story step.
 
 Each icon is 7 rows of 7 characters: '#' = lit dot, '.' = faint grid dot. Decorative only
 (aria-hidden): the step label always says in words what the step is about.

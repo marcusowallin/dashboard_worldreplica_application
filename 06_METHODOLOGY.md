@@ -1,7 +1,7 @@
 # Methodology: from a jet fuel move to EPS vs baseline
 
-This file defines exactly what we calculate and why. 02_SPEC.md says what to build;
-this file says how the numbers work. All company inputs are printed figures (see CLAUDE.md).
+This file defines exactly what we calculate and why. All company inputs are printed figures, chosen by the
+source hierarchy described in section 6.
 
 ---------------------------------------------------------------------------------------------
 ## 1. The question, split into answerable parts
@@ -199,7 +199,7 @@ Notes:
 Only some companies guide profit, and none guides EPS directly. So:
 
 EPS baseline hierarchy (changed 29 Sep 2026):
-  1. PRIMARY - third-party consensus EPS (source level 4, decided explicitly - see CLAUDE.md
+  1. PRIMARY - third-party consensus EPS (source level 4, agreed explicitly - see the source hierarchy
      source hierarchy). ONE provider for all three airlines (proposed: MarketScreener, pending
      approval), FY26 and FY27, snapshots taken the same day and saved as dated PDFs in
      sources/third-party/ with URL. Record: statistic (mean/median), number of analysts, currency
@@ -246,7 +246,7 @@ most of the gap (from section 8).
 
 ---------------------------------------------------------------------------------------------
 ### 6b. Story headline yardstick (decision 30 Sep 2026; ASSUMPTIONS.md A25-A29)
-The redesigned page leads with X = operating-profit loss from a USD 100/t jet move (+40 Brent/+60 crack, A28) as
+The redesigned page leads with X = operating-profit loss from a USD 100/t jet move (split by the 5-year median crude share, A28) as
 % of the operating profit EXPECTED for the same year - never a past year. Yardstick hierarchy per airline and year:
 company's printed projection (amount: midpoint, range kept; margin: x revenue from the same hierarchy) -> one
 provider's consensus EBIT for all three (MarketScreener, same snapshot as EPS; EBIT basis checked against each
@@ -306,7 +306,7 @@ The largest bar is named in the one-line answer, e.g.
 ---------------------------------------------------------------------------------------------
 ## 9. Validation
 ---------------------------------------------------------------------------------------------
-Numbering: 02_SPEC.md "Trust layer" is the master list. Items below give the spec number [T#].
+Numbering: the trust items are numbered [T#].
 0. [T9] Fuel bill reconciliation per airline: volume x price after hedge vs printed fuel bill
    (P2; report the gap; explains definition differences such as emissions and SAF costs).
 1. [T2] Reproduce Lufthansa's own sensitivity table (Q2 charts, slide 17: jet rate after hedge by
@@ -334,7 +334,7 @@ Move: dB = +40 USD/t, dC = +60 USD/t (dJ = +100)
   not material (below the ≥ 5% threshold).
 
 ---------------------------------------------------------------------------------------------
-## 11. Extra inputs to extract (printed) - verified by hand first (Prompt 2); automated in P5
+## 11. Extra inputs to extract (printed) - verified by hand first; automated in P5
 ---------------------------------------------------------------------------------------------
 Per airline: hedge instrument TYPE (swaps vs options/collars) and strike levels if printed;
 hedge result by period; latest company-compiled consensus poll (date, median/mean, number of estimates,
@@ -362,14 +362,33 @@ include fuel moves after 27 Jul 2026. Lufthansa hedges use option combinations (
 treated as swaps.
 
 ---------------------------------------------------------------------------------------------
-## 13. Confidence label per airline (P2) - rule shown on the page
+## 12b. Choices that move the levels (2 Oct 2026; src/story/choices.py)
 ---------------------------------------------------------------------------------------------
-Counts only the inputs actually used in that airline's EPS chain for the period shown
-(sections 3-6: volume, hedge ratios and mix, g, recapture, tax, minorities, shares, FX,
-baseline EPS).
-  confidence share = inputs with status "verified" / all inputs used
-  "assumption", "derived", "third-party" and "found" inputs all count as not verified.
-  Label: HIGH if share ≥ 80%, MEDIUM if 50% to < 80%, LOW if < 50%  (thresholds accepted
-  29 Sep 2026). The page shows the share, the label, and the list of non-verified inputs.
+Four choices are not settled by the companies and are shown in the story (step 6) next to the tornado, with the same
+building blocks as the answer so the base case reproduces it:
+  persistence (A35)      only a share p of the shock lasts into 2027. The chain is linear in the move, so every loss
+                         scales by p; the order does not change.
+  pass-through base (A37) the printed 'we recover r of the higher fuel cost' is read as r x the cost AFTER hedging
+                         (net = (1 - r) x gross). Alternative: r x the whole market price rise
+                         (net = gross - r x volume x market move). The reading decides the sign for the airlines that hedged.
+  Lufthansa's book (A36)  its FY2027 hedge mix is borrowed from FY2026 (A3). Add-ons: all-Brent, all-gasoil, and an options
+                         fade = its swap protection x (table-implied / swap-modelled protection of the FY2026 case).
+  price endpoints (A38)   the live move on five-day averages at both ends next to the single-day move.
+Plus net cost per tonne of fuel and a bootstrap 95% interval for the median crude share (A28).
+
+## 13. Confidence score per airline - rule shown on the page (graded rule, decided 2 Oct 2026)
+---------------------------------------------------------------------------------------------
+Replaces the earlier all-or-nothing share of "verified" inputs, under which HIGH was unreachable (derived, third-party
+and undisclosed inputs could never count) and consensus EPS was excluded.
+Inputs counted: those behind the headline period (FY2027: volume, hedge ratio, hedge mix, recapture, tax, minorities,
+forward share count, consensus EPS and the consensus EBIT that is the denominator of the headline %; FY2026 has its own
+list). Market prices and model constants (g, 7.9 bbl/t) are not counted (ASSUMPTIONS.md). Inputs that do not apply to an
+airline are left out.
+Credit per input: checked company or official figure 1.00; checked consensus (level 4: matched to the dated provider
+snapshot and the live provider page) 0.75; calculated from printed figures 0.75; labelled assumption or unchecked
+third-party figure 0.50; read from a document but not yet checked 0.25; not disclosed, carried as a range 0.25.
+  score = average credit.  HIGH if score >= 80% and no input is unchecked ("found"); MEDIUM if >= 50%; otherwise LOW.
+All inputs weigh the same (a weighting by influence on the answer, from the tornado, is a possible refinement). The page
+shows each airline's score, label and the credit of every input. The headline label is the lowest of the three airlines.
 It measures how well-sourced the inputs are, not how right the model is.
 

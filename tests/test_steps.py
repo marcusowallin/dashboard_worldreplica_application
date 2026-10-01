@@ -6,7 +6,7 @@ import pytest
 from src.data_sources import load_live_prices as REAL_LOADER
 from src.model.run import BASELINE_DAY
 from src.story.exposure import chart_rows, exposure, premium_exposed_range, tonnes_split, unhedged_range
-from src.story.steps import exposure_step, price_step, split_step
+from src.story.steps import exposure_step, shock_step
 from src.twins import load_twins
 from src.ui.charts import exposure_bars, price_lines, split_bars
 from src.ui.theme import AIRLINE_LABELS
@@ -39,22 +39,28 @@ def test_exposure_hides_undisclosed_mix_and_shows_both_lufthansa_cases():
     assert rows[-1]["undisclosed"] == pytest.approx(e["iag"]["FY2027"][0]["hedged"])
 
 
-def test_price_step_wording():
-    step = price_step(LIVE["moves"], 100)
-    assert step["headline"] == "Jet fuel is up 22% (+USD 256/t) since 27 July."   # fake feed: 3.582 -> 4.354 USD/gal
-    assert "same standard shock" in step["body"] and "+USD 100/t" in step["body"] and "2.6 times that" in step["body"]
-    down = dict(LIVE["moves"], d_jet=-50.0)
-    assert price_step(down, 100)["headline"].startswith("Jet fuel is down")
-    assert "unavailable" in price_step(None, 100)["headline"] and "+USD 100/t" in price_step(None, 100)["body"]
+STATS = {"fallback": False, "median": 0.41, "q1": 0.07, "q3": 0.64, "n": 81, "years": 5, "interval": (0.27, 0.51)}
 
 
-def test_split_step_words_and_signs():
-    step = split_step(LIVE["moves"], (40, 60))
-    # fake feed: Brent +180.8 of jet +256.1 = 71% -> not near a simple fraction, so a rounded percentage
-    assert step["headline"] == "About 70% of today's rise is crude, about 30% the jet premium."
-    mixed = dict(LIVE["moves"], d_brent=120.0, d_crack=-20.0)
-    assert "premium -USD 20/t" in split_step(mixed, (40, 60))["headline"]
-    assert "+40 crude / +60 premium" in split_step(None, (40, 60))["body"]
+def test_shock_step_merges_price_move_split_and_the_standard_shock():
+    step = shock_step(LIVE["moves"], 100, (41, 59), STATS)
+    # fake feed: jet 3.582 -> 4.354 USD/gal; Brent +180.8 of jet +256.1 = 71% crude
+    assert step["headline"] == "Jet fuel is up 22% (+USD 256/t) since 27 July - about 70% of it crude oil, about 30% the jet premium."
+    assert "median 41% of the 81 large moves of the 5 years before" in step["body"] and "uncertain, 27-51%" in step["body"]
+    assert "applies +USD 100/t, split +41 crude / +59 premium, to all three airlines" in step["body"]
+    assert "2.6 times that" in step["body"] and "five-day" not in step["body"]
+    smoothed = shock_step(LIVE["moves"], 100, (41, 59), STATS, smoothed={"d_jet": 221.0})
+    assert "On five-day averages at both ends the move is +221 USD/t." in smoothed["body"]
+
+
+def test_shock_step_handles_falling_prices_mixed_moves_and_no_feed():
+    down = shock_step(dict(LIVE["moves"], d_jet=-50.0, d_brent=-30.0, d_crack=-20.0), 100, (41, 59), STATS)
+    assert down["headline"].startswith("Jet fuel is down") and "crude: " not in down["headline"]
+    mixed = shock_step(dict(LIVE["moves"], d_brent=120.0, d_crack=-20.0), 100, (41, 59), STATS)
+    assert "crude +120, jet premium -20 USD/t" in mixed["headline"]
+    none = shock_step(None, 100, (41, 59), STATS)
+    assert "unavailable" in none["headline"] and "+USD 100/t" in none["body"] and "split +41 crude / +59 premium" in none["body"]
+    assert "median 41%" not in shock_step(LIVE["moves"], 100, (50, 50), {"fallback": True})["body"]      # no history, no claim
 
 
 def test_exposure_step_states_the_roll_off():
@@ -122,12 +128,16 @@ def test_materiality_says_close_when_a_no_is_a_near_miss():
 
 def test_tornado_step_headline_is_plain_and_defines_the_gap():
     from src.story.steps import tornado_step
-    bars = [{"label": "Air France-KLM pass-through 50%-85%", "low": 0.02, "high": 0.064, "swing": 0.044,
+    bars = [{"label": "Air France-KLM pass-through 50%-85%", "key": "pt:afklm", "low": 0.02, "high": 0.064, "swing": 0.044,
              "lh_low": 0.09, "lh_high": 0.1, "lh_swing": 0.01},
-            {"label": "Lufthansa 2027 hedge cover 29%-50%", "low": 0.05, "high": 0.07, "swing": 0.02,
+            {"label": "Lufthansa 2027 hedge cover 29%-50%", "key": "lh_cover", "low": 0.05, "high": 0.07, "swing": 0.02,
              "lh_low": 0.09, "lh_high": 0.115, "lh_swing": 0.025}]
     out = tornado_step({"bars": bars, "base_gap": 0.064})
-    assert out["headline"] == ("The order depends most on pass-through: Air France-KLM's alone changes the gap "
-                               "between Lufthansa and its peers by 4 pp.")
+    assert out["headline"] == ("The result is most sensitive to pass-through: Air France-KLM's alone changes the gap "
+                               "between Lufthansa and its peers by 4.4 pp.")
     assert "how many points more of its expected 2027 operating profit Lufthansa loses" in out["body"]
-    assert "(6 pp at the base case)" in out["body"] and "No single assumption closes the gap." in out["body"]
+    assert "(6.4 pp at the base case)" in out["body"]
+    assert "No single assumption closes it; the closest, Air France-KLM pass-through 50%-85%, narrows it to 2.0 pp." in out["body"]
+    persistence_first = [{**bars[0], "key": "persistence", "label": "Share of the shock still there in 2027: 50%-100%"}, bars[1]]
+    assert "most sensitive to how much of today's shock lasts into 2027" in tornado_step(
+        {"bars": persistence_first, "base_gap": 0.064})["headline"]

@@ -142,3 +142,16 @@ def test_lookback_table_reports_each_window():
     rows = {r["years"]: r for r in lookback_table(prices, last, years=(1.69, 5))}   # 1.69 y = last nine jumps only
     assert rows[1.69]["n"] == 9 and rows[1.69]["median"] == pytest.approx(0.3)
     assert rows[5]["n"] == 18 and rows[5]["median"] == pytest.approx(0.6)
+
+
+def test_median_interval_contains_the_median_is_repeatable_and_widens_with_noise():
+    from src.story.price_split import median_interval
+    tight = [0.5] * 20
+    assert median_interval(tight) == (0.5, 0.5)
+    noisy = [0.1, 0.3, 0.5, 0.55, 0.6, 0.7, 0.9, 0.2, 0.8, 0.45, 0.65, 0.35]
+    lo, hi = median_interval(noisy)
+    assert lo <= 0.525 <= hi and hi - lo > 0.05                      # median of the sample is 0.525
+    assert median_interval(noisy) == (lo, hi)                        # fixed seed: same every run
+    prices, last = _episodes_prices([0.1, 0.3, 0.5, 0.55, 0.6, 0.7, 0.9, 0.2, 0.8])
+    stats = benchmark_split(prices, last, years=5)
+    assert stats["interval"][0] <= stats["median"] <= stats["interval"][1]

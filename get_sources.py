@@ -4,7 +4,7 @@ Run from the project folder with the project's venv:   .venv/bin/python get_sour
 (The old system Python 3.8 on this Mac fails with SSL certificate errors.)
 Uses only Python's standard library - nothing to install.
 Existing files are skipped, so it is safe to run again.
-Company documents are for your own analysis: sources/ is git-ignored and never pushed.
+Company documents are for personal analysis: sources/ is git-ignored and never pushed.
 """
 import os
 import urllib.request
@@ -27,7 +27,7 @@ DOCS = [
      "https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/"),
     ("iag", "2026-H1", "IAG-H1-2026-results-presentation.pdf",
      "https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf"),
-    # Added in Prompt 1b (29 Sep 2026) - links found on the companies' own IR sites
+    # Added in a later step (29 Sep 2026) - links found on the companies' own IR sites
     ("lufthansa", "2025-FY", "LH-AR-2025-e.pdf",
      "https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf"),
     ("lufthansa", "2026-Q2", "LHG-Consensus-Q2-2026.pdf",

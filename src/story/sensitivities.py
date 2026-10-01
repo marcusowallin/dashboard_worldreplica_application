@@ -1,9 +1,9 @@
 """Numbers for the 'so what' cards (Step 8) - each one from the same model functions as Steps 4-7.
 
-  margin_multiplier   how many times IAG's profit hit a similar margin loss means for Lufthansa (Step 6 rows)
-  pass_through        Lufthansa 2027 net cost change per 10 pp of pass-through = 0.10 x gross (Step 4-5 chain:
+  margin_multiplier   how many times IAG's profit hit a similar margin loss means for Lufthansa (Step 4 rows)
+  pass_through        Lufthansa 2027 net cost change per 10 pp of pass-through = 0.10 x gross (Step 3 chain:
                       net = (1 - r) x gross, so d net / d r = -gross); and the change at Air France-KLM's printed rate
-  hedge_cover         Lufthansa 2027 net cost at 29% minus at ~50% hedge cover (the two Step 4-5 cases)
+  hedge_cover         Lufthansa 2027 net cost at 29% minus at ~50% hedge cover (the two Step 3 cases)
   hedge_quality_swing largest effect of the peers' undisclosed hedge mix on the gap (attribution, A29), in pp
 """
 from src.model.run import PEERS, US

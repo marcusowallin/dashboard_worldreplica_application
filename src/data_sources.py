@@ -1,4 +1,4 @@
-"""Live prices (02_SPEC.md "Live data"): FRED jet fuel and Brent, ECB USD/EUR via Frankfurter.
+"""Live prices: FRED jet fuel and Brent, ECB USD/EUR via Frankfurter.
 
 Every fetch returns a FeedResult with the data, the source name and URL, the as-of date and an
 error message. A failed fetch never raises: data is None and `error` says what went wrong, so
@@ -25,7 +25,7 @@ FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={st
 FRED_PAGE = "https://fred.stlouisfed.org/series/{series}"
 FX_URL = "https://api.frankfurter.dev/v1/{day}?base=EUR&symbols=USD"
 JET_SERIES, BRENT_SERIES = "DJFUELUSGULF", "DCOILBRENTEU"
-TIMEOUT_S = 20
+TIMEOUT_S = 10          # per request; three requests run one after another, so a full outage costs at most about 30 s once a minute
 
 
 @dataclass

@@ -1,4 +1,4 @@
-"""Company twins: load and validate data/airlines.yaml (02_SPEC.md "Company twin fields").
+"""Company twins: load and validate data/airlines.yaml.
 
 The twins file holds one record per airline with identical fields. Every field is a small
 record: value, unit, currency, period, as_of, document, page, quote, url, level, status, note.

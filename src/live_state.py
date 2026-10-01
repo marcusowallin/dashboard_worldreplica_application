@@ -16,6 +16,8 @@ from src.story.price_split import LOOKBACK_YEARS
 
 FALLBACK_FX = 1.151            # Lufthansa's printed planning rate - only if the ECB feed is down (labelled)
 UPDATE_COOLDOWN_S = 60         # one shared re-fetch per minute at most, whoever clicks
+DOWN_CACHE_S = 60              # after a failed fetch, do not try again for a minute (an outage would otherwise cost
+                               # every page rerun three slow requests)
 
 
 class FeedsDown(Exception):
@@ -34,7 +36,7 @@ def _fetch_prices():
 @st.cache_resource
 def _shared():
     """Shared by every visitor: the last good prices and the Update-data cooldown."""
-    return {"last_good": None, "last_update": None, "lock": threading.Lock()}
+    return {"last_good": None, "last_update": None, "down_until": None, "down_errors": "", "lock": threading.Lock()}
 
 
 def update_prices():
@@ -46,21 +48,34 @@ def update_prices():
             wait = UPDATE_COOLDOWN_S - (now - shared["last_update"]).total_seconds()
             return f"Prices were just updated - next update possible in {wait:.0f} s."
         shared["last_update"] = now
+        shared["down_until"] = None                     # 'Update data' always tries again
         _fetch_prices.clear()
     return None
 
 
+def _unavailable(shared, errors):
+    """What to show while the feeds are down: the last good data with a notice, or nothing - never a crash."""
+    if shared["last_good"]:
+        live, fetched = shared["last_good"]
+        return live, fetched, (f"Live feeds unavailable right now ({errors}). Showing the last good data, "
+                               f"fetched {fetched:%d %b %Y %H:%M} UTC.")
+    return None, None, f"Live feeds unavailable right now ({errors}). The scenario below does not need them."
+
+
 def current_prices():
-    """(live, fetched_at, notice). Falls back to the last good data, then to no live data - never crashes."""
+    """(live, fetched_at, notice). Falls back to the last good data, then to no live data - never crashes.
+
+    A failed fetch is remembered for DOWN_CACHE_S seconds so an outage does not make every rerun wait for timeouts."""
     shared = _shared()
+    now = datetime.now(timezone.utc)
+    if shared["down_until"] and now < shared["down_until"]:
+        return _unavailable(shared, shared["down_errors"])
     try:
         live, fetched = _fetch_prices()
         shared["last_good"] = (live, fetched)
         return live, fetched, None
     except FeedsDown as down:
         errors = "; ".join(down.args[0]["errors"])
-        if shared["last_good"]:
-            live, fetched = shared["last_good"]
-            return live, fetched, (f"Live feeds unavailable right now ({errors}). Showing the last good data, "
-                                   f"fetched {fetched:%d %b %Y %H:%M} UTC.")
-        return None, None, f"Live feeds unavailable right now ({errors}). The scenario below does not need them."
+        shared["down_until"] = now + timedelta(seconds=DOWN_CACHE_S)
+        shared["down_errors"] = errors
+        return _unavailable(shared, errors)

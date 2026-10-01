@@ -4,7 +4,7 @@ You save the provider pages in sources/third-party/ as
     YYYY-MM-DD_marketscreener_<airline>_<part>.(jpg|png|pdf)
 The reader turns each file into positioned text tokens (images: Apple Vision OCR, on-device, macOS only;
 PDFs: the PDF's own text layer), finds the year header and the rows "Net sales", "EBIT" and "EPS", and maps
-every number to the year column above it by position. Nothing is written without your OK
+every number to the year column above it by position. Nothing is written without approval
 (scripts/refresh_consensus.py shows old vs new first). No AI model produces these numbers; OCR only reads
 what is on the saved page, and every value is shown to you before it is used.
 """
@@ -206,7 +206,7 @@ def proposals(folder, twins, reader=read_snapshot):
     return out
 
 
-# --- writing the twins (only after your OK) ----------------------------------------------------------
+# --- writing the twins (only after approval) ----------------------------------------------------------
 
 def update_field_text(text, airline, field, value, as_of, quote):
     """Return the YAML text with one field's value, as_of and quote replaced (everything else untouched)."""

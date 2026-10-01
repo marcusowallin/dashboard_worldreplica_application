@@ -30,7 +30,8 @@ LEVELS = {
 }
 
 STATUS_WORDS = {
-    "verified": "verified by hand against the source", "found": "read from the source, not yet checked by hand",
+    "verified": "verified against the source (quote found on the cited page, reasonability test)",
+    "found": "read from the source, not yet checked",
     "derived": "calculated from printed figures", "assumption": "assumption", "third-party": "third-party figure",
     "not-disclosed": "not disclosed by the company", "not-applicable": "does not apply",
     "to-extract": "not yet extracted",
@@ -45,7 +46,7 @@ FIELD_LABELS = {
     "hedge_mix_gasoil": "Hedge book: gasoil part", "hedge_mix_brent": "Hedge book: Brent part",
     "hedge_mix_jet": "Hedge book: jet part", "recapture_rate": "Pass-through (recapture) rate",
     "tax_rate_marginal": "Tax rate used (marginal)", "tax_rate_effective_fy25": "Effective tax rate FY2025",
-    "minority_share": "Minorities' share of net income", "diluted_shares": "Diluted shares",
+    "minority_share": "Minorities' share of net income", "diluted_shares": "Diluted shares (FY2025, as printed)", "diluted_shares_forward": "Diluted shares used for 2026-27 EPS",
     "eps_fy25": "Diluted EPS FY2025", "consensus_eps_fy26": "Consensus EPS FY2026",
     "consensus_eps_fy27": "Consensus EPS FY2027", "consensus_ebit_fy26": "Consensus EBIT FY2026",
     "consensus_ebit_fy27": "Consensus EBIT FY2027", "poll_ebit_fy27": "Company poll: adjusted EBIT FY2027 (median)",
@@ -83,7 +84,7 @@ SOURCE_VERDICTS = (
     ("IATA", "out", "A feed exists, but the terms forbid use of the content on other websites without written consent."),
     ("Airline Weekly (Skift), AeroTime", "out", "The terms forbid automated collection."),
     ("Simple Flying", "out", "robots.txt prohibits automated retrieval and AI use."),
-    ("Aviation Week", "out", "Terms page not found; not checked, so not used (owner's decision)."),
+    ("Aviation Week", "out", "Terms page not found; not checked, so not used (project decision)."),
     ("Google News RSS", "out", "robots.txt disallows crawling and blocks AI agents by name."),
 )
 
@@ -91,13 +92,20 @@ LIMITATIONS = (
     "Spot moves are applied as a parallel shift of the price curve for the rest of 2026 and all of 2027 (no free "
     "forward curves). Printed curves are steeply backwardated (IAG's presentation shows jet falling from about "
     "USD 1,150/t in Q3 2026 to about USD 900/t in Q4 2027 on 27 Jul), so the 2027 effects are probably overstated for "
-    "all three airlines; the ranking is less affected than the levels (A14).",
+    "all three airlines; the ranking is less affected than the levels (A14). Step 6 shows the effect: if half the shock "
+    "lasts, every loss halves and the order does not change (A35).",
     "US Gulf Coast jet fuel stands in for European jet fuel; Brent and jet are converted with one factor, "
     "7.9 barrels per tonne (A12, A15). Moves, not levels, matter; the proxy's own basis risk cannot be measured with "
     "free data.",
     "Options and collars are treated as swaps. Lufthansa's own sensitivity table shows its protection fading as "
     "prices rise (validation T2); the 'company table' case shows this for the rest of 2026 only, and at today's "
     "prices may itself understate the effect (A24).",
+    "Definitions differ. Operating costs are whole-group (Lufthansa's include MRO and logistics) while the capacity "
+    "denominator is passenger seat-km, which makes Lufthansa's cost per seat-km look higher; Air France-KLM nets "
+    "other operating income into its costs. Hedge ratios are not defined alike: Air France-KLM says strict "
+    "adherence to its hedging policy was suspended from 1 April 2026 and partly resumed in May, with a focus on 2027 "
+    "and beyond (Q2 release); IAG's 'around 70%' is for the remainder of 2026 (call transcript); Lufthansa's 81% is "
+    "its year-to-go ratio. IAG's 12-15% operating margin is a standing target range, not a forecast.",
     "Only Lufthansa discloses its hedge instrument mix. For Air France-KLM and IAG hedge quality is a range, from "
     "all-jet to all-crude (A5), which is why it is called small and uncertain rather than a driver.",
     "Pass-through (recapture) is taken at the rates the companies printed, in the same period and symmetric. The "
@@ -118,14 +126,18 @@ LIMITATIONS = (
     "News tags and the effect on each airline are an AI model's classification of a headline, checked in code for "
     "allowed values and a verbatim quote. Whether the judgement is right is measured against hand labels, once "
     "labelled; until then treat the markers as indications.",
-    "Company figures are read from the source documents but not all are yet checked by hand against the pages "
-    "(see Data status below); the confidence label says so.",
+    "Company figures were checked on 2 Oct 2026 against the saved documents: the quoted words found on the cited page "
+    "and a reasonability test, logged in data/verification_log.csv. Figures that are calculated, third-party, assumed "
+    "or not disclosed are labelled as such and do not count as verified (see Data status below); the confidence label "
+    "says so.",
 )
 
 IDEAS = (
     "Licensed European jet fuel (NWE) prices and forward curves instead of US Gulf Coast spot as a proxy.",
-    "A licensed consensus API (EPS, EBIT, revenue with per-estimate dates) instead of hand-saved dated snapshots; "
-    "the provider pages block automated access.",
+    "One source of truth for consensus: take every consensus input (EPS, EBIT, revenue) from MarketScreener or a "
+    "similar provider, on one date and read by one method, so the page rests on a single dated, checkable source. A "
+    "licensed API with per-estimate dates would make the refresh automatic (the provider pages block automated "
+    "access today, so snapshots are saved by hand).",
     "Backtest: apply the method to an earlier fuel spike and compare with what the airlines then reported.",
     "Balance sheet view: cash flow, net debt and leverage impact (each company defines leverage differently).",
     "Market-reaction check: share-price moves on fuel-event days (needs a price feed licensed for public display).",
@@ -189,10 +201,11 @@ def status_table(twins):
 
 def tagger_report(csv_path=ROOT / "data" / "labelled_headlines.csv",
                   tags_path=ROOT / "data" / "labelled_headlines_tags.json"):
-    """Agreement of the AI tags with the hand labels, or None-values while nothing is labelled yet.
+    """Agreement of the AI tags with the reference labels, or None-values while nothing is labelled or evaluated.
 
     Output: {"rows": n, "labelled": n, "agreement": {field: (agree, labelled)} or None, "note": text}.
-    The tags file is written by scripts/evaluate_tagger.py (needs the labels and an API key).
+    The tags file is written by scripts/evaluate_tagger.py (needs the labels and an API key). Who wrote the labels is
+    read from labelled_by.txt next to the CSV, so the page never calls drafted labels 'hand labels'.
     """
     try:
         rows = list(csv.DictReader(open(csv_path, encoding="utf-8", newline="")))
@@ -200,19 +213,22 @@ def tagger_report(csv_path=ROOT / "data" / "labelled_headlines.csv",
         return {"rows": 0, "labelled": 0, "agreement": None, "note": "The labelled headline file is missing."}
     labels = [parse_label(r) for r in rows]
     labelled = sum(1 for lab in labels if any(v is not None for v in lab.values()))
+    provenance = Path(csv_path).with_name("labelled_by.txt")
+    who = provenance.read_text(encoding="utf-8").strip() if provenance.exists() else "labelled by hand"
     if not labelled:
         return {"rows": len(rows), "labelled": 0, "agreement": None,
-                "note": f"Not measured yet: {len(rows)} real headlines are waiting for hand labels."}
+                "note": f"Not measured yet: {len(rows)} real headlines are waiting for labels."}
     try:
         tags = json.loads(Path(tags_path).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {"rows": len(rows), "labelled": labelled, "agreement": None,
-                "note": f"{labelled} of {len(rows)} headlines are labelled; the evaluation has not been run yet."}
+                "note": (f"Not measured yet: {labelled} of {len(rows)} real headlines are labelled, but the tagger has not "
+                         f"been run on them (it needs an API key). {who}")}
     if len(tags) != len(rows):
         return {"rows": len(rows), "labelled": labelled, "agreement": None,
                 "note": "The saved tags do not match the labelled file; run the evaluation again."}
     return {"rows": len(rows), "labelled": labelled, "agreement": agreement(labels, tags),
-            "note": f"Agreement of the AI tags with {labelled} hand-labelled real headlines."}
+            "note": f"Agreement of the AI tags with {labelled} labelled real headlines. {who}"}
 
 
 def md_table(rows):

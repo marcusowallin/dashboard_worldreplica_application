@@ -219,7 +219,7 @@ def test_new_driver_categories_and_step_map():
     assert DRIVERS == ("fuel_price", "jet_premium", "hedging", "pass_through", "capacity", "guidance",
                        "disruption", "other")
     assert set(DRIVER_STEPS) == set(DRIVERS)
-    assert [DRIVER_STEPS[d][0] for d in DRIVERS] == [1, 2, 3, 5, 4, 6, 7, None]
+    assert [DRIVER_STEPS[d][0] for d in DRIVERS] == [1, 1, 2, 3, 3, 4, 5, None]
     enum = SCHEMA["properties"]["tags"]["items"]["properties"]["driver"]["enum"]
     assert enum == list(DRIVERS)
     for d in DRIVERS:
@@ -239,7 +239,9 @@ def test_t11_injection_cannot_invent_a_driver_or_step():
 def test_placeholder_key_is_treated_as_no_key():
     from src.news_tagger import make_client
     assert make_client(lambda name: "sk-ant-your-key-here") is None
-    assert make_client(lambda name: None) is None or True        # environment may hold a key; never required
+    import os
+    os.environ.pop("ANTHROPIC_API_KEY", None)                       # no key anywhere -> no client, never an error
+    assert make_client(lambda name: None) is None
 
 
 def test_evaluation_flags_labels_outside_the_categories():
@@ -261,7 +263,7 @@ def test_news_item_shows_tags_quote_marker_and_step_link():
     names = {"lufthansa": "Lufthansa", "afklm": "Air France-KLM", "iag": "IAG"}
     clean, _ = validate_tag(tag(0, "jet fuel costs will top", driver="guidance"), H1)
     html = news_item({**H1, "domain": "reuters.com", "seen": None, "tag": clean}, names, DRIVER_STEPS)
-    assert 'href="./#step-06"' in html and "verified quote" in html and "Lufthansa" in html and "reuters.com" in html
+    assert 'href="./#step-04"' in html and "verified quote" in html and "Lufthansa" in html and "reuters.com" in html
     assert "untagged" in news_item({**H2, "tag": None}, names, DRIVER_STEPS)
     evil = {"title": "<script>x</script>", "url": "javascript:alert(1)", "tag": None}
     html = news_item(evil, names, DRIVER_STEPS)

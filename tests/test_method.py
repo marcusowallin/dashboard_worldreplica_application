@@ -98,8 +98,8 @@ def test_every_twin_field_has_a_label_and_a_source_row():
     for airline in TWINS["airlines"].values():
         assert set(airline["fields"]) <= set(mc.FIELD_LABELS)
     rows = mc.source_rows(TWINS)
-    assert sum(len(items) for by in rows.values() for items in by.values()) == 34 * 3
-    assert sum(sum(c.values()) for c in mc.status_table(TWINS).values()) == 34 * 3
+    assert sum(len(items) for by in rows.values() for items in by.values()) == 35 * 3
+    assert sum(sum(c.values()) for c in mc.status_table(TWINS).values()) == 35 * 3
 
 
 def test_source_links_are_external_and_every_document_has_one():
@@ -153,13 +153,17 @@ def test_tagger_report_states(tmp_path):
     csv_path, tags_path = tmp_path / "l.csv", tmp_path / "t.json"
     head = "id,title,url,collected,label_relevant,label_airlines,label_driver,label_direction,label_severity,label_impact\n"
     csv_path.write_text(head + "1,T,u,c,,,,,,\n", encoding="utf-8")
-    assert "waiting for hand labels" in mc.tagger_report(csv_path, tags_path)["note"]
+    assert "waiting for labels" in mc.tagger_report(csv_path, tags_path)["note"]
     csv_path.write_text(head + "1,T,u,c,yes,lufthansa,fuel_price,cost_up,2,lufthansa:negative\n", encoding="utf-8")
-    assert "has not been run" in mc.tagger_report(csv_path, tags_path)["note"]
+    note = mc.tagger_report(csv_path, tags_path)["note"]
+    assert "has not been run" in note and "needs an API key" in note and "labelled by hand" in note
+    (tmp_path / "labelled_by.txt").write_text("Labels drafted by the coding agent; not yet reviewed.\n", encoding="utf-8")
+    assert "drafted by the coding agent" in mc.tagger_report(csv_path, tags_path)["note"]          # provenance is shown
     tags_path.write_text(json.dumps([{"relevant": True, "airlines": ["lufthansa"], "driver": "fuel_price",
                                       "direction": "cost_up", "severity": 2, "impacts": {"lufthansa": "negative"}}]))
     report = mc.tagger_report(csv_path, tags_path)
     assert report["agreement"]["driver"] == (1, 1) and report["agreement"]["impacts"] == (1, 1)
+    assert "drafted by the coding agent" in report["note"]
     tags_path.write_text("[]")
     assert "do not match" in mc.tagger_report(csv_path, tags_path)["note"]
     assert "missing" in mc.tagger_report(tmp_path / "none.csv", tags_path)["note"]
@@ -169,7 +173,7 @@ def test_tagger_report_states(tmp_path):
 
 def test_app_has_story_and_method_pages_and_retired_v1(fresh):
     at = AppTest.from_file(APP, default_timeout=90).run()
-    assert not at.exception and "Scenario: jet fuel +USD 100/t." in _html(at)
+    assert not at.exception and "A hypothetical jet fuel rise of +USD 100/t" in _html(at)
     at.switch_page("method.py").run()
     assert not at.exception and "Contents" in _html(at) and at.title[0].value == "Method & sources"
     # the first dashboard is gone from the app: no "Answer" subheader / old section titles
@@ -195,9 +199,11 @@ def test_every_story_marker_has_an_entry_on_the_method_page(fresh):
 def test_method_page_content_and_honesty(fresh):
     at = AppTest.from_file(APP, default_timeout=90).run().switch_page("method.py").run()
     text = _all_text(at)
-    for needle in ("not yet checked by hand", "This is not a probability", "Aviation Week", "Google News RSS",
+    for needle in ("not yet checked", "This is not a probability", "Aviation Week", "Google News RSS",
                    "Lufthansa's own sensitivity table", "Expected operating profit", "AF-KLM", "Level 1"):
         assert needle.replace("AF-KLM", "Air France-KLM") in text or needle in text, needle
+    assert "The confidence label on the story is therefore MEDIUM" in text           # computed, never typed in
+    assert re.search(r"\d+ are \*\*verified\*\*", text) and "data/verification_log.csv" in text
     assert re.search(r"hit hardest in \d+%-\d+% of them", text)               # the share, explained, on this page only
     story = _all_text(AppTest.from_file(APP, default_timeout=90).run())
     assert "of the combinations" not in story and "not a probability" not in story

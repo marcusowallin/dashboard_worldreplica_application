@@ -137,26 +137,72 @@ def fuel_bill_reconciliation(twins, airline):
                     f"expense EUR 8.46bn (slide 17), converted at LH's planning rate 1.151."}
 
 
-# --- T10: confidence label per airline ------------------------------------------------------
+# --- T10: confidence score per airline (graded rule, 2 Oct 2026; 06_METHODOLOGY.md section 13) -------------------
 
-MODEL_INPUT_FIELDS = (
-    "fuel_volume_fy26", "fuel_volume_q3_26", "fuel_volume_q4_26", "hedge_ratio_rest_fy26", "hedge_ratio_q3_26",
-    "hedge_ratio_q4_26", "hedge_ratio_fy27", "hedge_ratio_fy27_upper", "hedge_mix_gasoil",
-    "hedge_mix_brent", "hedge_mix_jet", "recapture_rate", "tax_rate_marginal", "minority_share",
-    "diluted_shares", "consensus_eps_fy26", "consensus_eps_fy27",
+# The inputs behind each headline period. Market prices (FRED, ECB) and model constants (g, 7.9 bbl/t) are not counted;
+# they are listed in ASSUMPTIONS.md. Fields that do not apply to an airline are left out of its score.
+CONFIDENCE_INPUTS = {
+    "FY2027": (
+        "fuel_volume_fy26", "hedge_ratio_fy27", "hedge_ratio_fy27_upper", "hedge_mix_gasoil", "hedge_mix_brent",
+        "hedge_mix_jet", "recapture_rate", "tax_rate_marginal", "minority_share", "diluted_shares_forward",
+        "consensus_eps_fy27", "consensus_ebit_fy27",
+    ),
+    "FY2026": (
+        "fuel_volume_fy26", "fuel_volume_q3_26", "fuel_volume_q4_26", "hedge_ratio_rest_fy26", "hedge_ratio_q3_26",
+        "hedge_ratio_q4_26", "hedge_mix_gasoil", "hedge_mix_brent", "hedge_mix_jet", "recapture_rate",
+        "tax_rate_marginal", "minority_share", "diluted_shares_forward", "consensus_eps_fy26", "consensus_ebit_fy26",
+    ),
+}
+# credit per input by how it is sourced; 'verified' is split by source level in input_credit()
+CREDIT_SCALE = (
+    ("verified, company or official document (levels 1-3)", 1.00,
+     "the figure was checked against the document: quoted words on the cited page, number, unit and period"),
+    ("verified, third-party consensus (level 4)", 0.75,
+     "checked against the dated provider snapshot and the live provider page, but an analyst projection"),
+    ("derived", 0.75, "calculated from printed figures; the formula is in the data file and reproduces the value"),
+    ("assumption or third-party figure not checked", 0.50, "labelled, with its reasoning, and tested in the sensitivities"),
+    ("found: read from a document, not yet checked", 0.25, "may be right, but nobody has compared it with the page"),
+    ("not disclosed", 0.25, "unknown; the result carries it as a range instead of a point"),
 )
-CONFIDENCE_RULE = ("Confidence = share of the company inputs used in the EPS chain that have been verified by hand "
-                   "against the source page. HIGH >= 80%, MEDIUM 50% to < 80%, LOW < 50%. "
-                   "'found', 'derived', 'assumption', 'third-party' and 'not-disclosed' count as not "
-                   "verified; 'not-applicable' fields are left out. Market prices and model "
-                   "assumptions (g, 7.9 bbl/t) are not counted (see ASSUMPTIONS.md).")
+HIGH_AT, MEDIUM_AT = 0.80, 0.50
+CONFIDENCE_RULE = ("Confidence is a score of how well the inputs behind the headline year are sourced. Each input gets "
+                   "credit by how it is sourced - checked company figure 1.00; checked consensus or calculated from "
+                   "printed figures 0.75; labelled assumption or unchecked third-party figure 0.50; read from a document "
+                   "but not yet checked 0.25; not disclosed (carried as a range) 0.25 - and the score is the average. "
+                   "HIGH from 80% (and no unchecked input), MEDIUM from 50%, otherwise LOW. It measures how well the "
+                   "inputs are sourced, not how right the model is. Market prices and model constants (g, 7.9 bbl/t) are "
+                   "not counted (ASSUMPTIONS.md). The table below shows every input.")
 
 
-def confidence_label(twins, airline):
-    """(label, share verified, list of not-verified fields) - 06_METHODOLOGY.md section 13."""
+def input_credit(field):
+    """(credit, why) for one twin field, or None when the field does not apply."""
+    status, level = field["status"], field["level"]
+    if status in ("not-applicable", "to-extract"):
+        return None
+    if status == "verified":
+        return (1.00, CREDIT_SCALE[0][2]) if (level or 1) <= 3 else (0.75, CREDIT_SCALE[1][2])
+    credit = {"derived": 0.75, "third-party": 0.50, "assumption": 0.50, "found": 0.25, "not-disclosed": 0.25}[status]
+    why = {"derived": CREDIT_SCALE[2][2], "third-party": "an analyst or press figure, not checked against the document",
+           "assumption": CREDIT_SCALE[3][2], "found": CREDIT_SCALE[4][2], "not-disclosed": CREDIT_SCALE[5][2]}[status]
+    return credit, why
+
+
+def confidence_breakdown(twins, airline, period="FY2027"):
+    """One row per input used for the period: {"field", "status", "level", "credit", "why"} (not-applicable left out)."""
     fields = twins["airlines"][airline]["fields"]
-    used = [f for f in MODEL_INPUT_FIELDS if fields[f]["status"] != "not-applicable"]
-    verified = [f for f in used if fields[f]["status"] == "verified"]
-    share = len(verified) / len(used) if used else 0.0
-    label = "HIGH" if share >= 0.8 else "MEDIUM" if share >= 0.5 else "LOW"
-    return label, share, [f for f in used if f not in verified]
+    rows = []
+    for name in CONFIDENCE_INPUTS[period]:
+        graded = input_credit(fields[name])
+        if graded:
+            rows.append({"field": name, "status": fields[name]["status"], "level": fields[name]["level"],
+                         "credit": graded[0], "why": graded[1]})
+    return rows
+
+
+def confidence_label(twins, airline, period="FY2027"):
+    """(label, score 0-1, fields with less than full credit) - 06_METHODOLOGY.md section 13."""
+    rows = confidence_breakdown(twins, airline, period)
+    score = sum(r["credit"] for r in rows) / len(rows) if rows else 0.0
+    unchecked = any(r["status"] == "found" for r in rows)
+    label = "HIGH" if score >= HIGH_AT and not unchecked else "MEDIUM" if score >= MEDIUM_AT else "LOW"
+    return label, score, [r["field"] for r in rows if r["credit"] < 1.0]

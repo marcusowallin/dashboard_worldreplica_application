@@ -1,4 +1,4 @@
-"""One Plotly template for every chart (DESIGN_BRIEF.md section 4) plus the story's chart builders.
+"""One Plotly template for every chart (design notes) plus the story's chart builders.
 
 Rules: transparent paper, surface plot area, thin gridlines, Inter, accent for Lufthansa (us), muted peers,
 grey for ranges, direct labels instead of legends. Chart builders take numbers that were already computed by
@@ -11,23 +11,40 @@ from src.ui.format import pct, pct_range, story_pct, story_pct_range
 from src.ui.theme import AIRLINE_COLORS, AIRLINE_SHORT, COLORS, hex_to_rgba
 
 TEMPLATE = "fsm"
-CONFIG = {"displayModeBar": False, "responsive": True}   # pass to st.plotly_chart(config=CONFIG)
+# pass to st.plotly_chart(config=CONFIG). No zoom of any kind: dragging a rectangle zooms in with no way back, and the
+# mouse wheel must keep scrolling the page. Hover tooltips stay.
+CONFIG = {"displayModeBar": False, "responsive": True, "scrollZoom": False, "doubleClick": False}
 FACTOR_LABELS = {"recapture": "pass-through", "profit base": "margin cushion", "hedge ratio": "hedge cover",
                  "hedge quality": "hedge quality (peers' mix unknown)"}
 FACTOR_COLORS = {"recapture": COLORS["accent"], "profit base": COLORS["peer_b"],
                  "hedge ratio": COLORS["peer_a"], "hedge quality": COLORS["range"]}
 
 
+def lock_zoom(fig):
+    """No drag-to-zoom or pan on any axis (a rectangle zoom has no way back). Set on the figure itself, not only in the
+    template, because Streamlit's own chart theme can replace the template in the browser. Returns the figure."""
+    fig.update_layout(dragmode=False)
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    return fig
+
+
+def plot(fig):
+    """Show a chart the way every chart on the pages is shown: zoom locked, shared config, hover tooltips kept."""
+    import streamlit as st
+    st.plotly_chart(lock_zoom(fig), config=CONFIG)
+
+
 def register_template():
     """Register the 'fsm' template and make it the default. Safe to call more than once."""
     axis = dict(gridcolor=COLORS["grid"], linecolor=COLORS["line"], zerolinecolor=COLORS["line"],
                 tickfont=dict(color=COLORS["text_3"], size=12), title_font=dict(color=COLORS["text_3"], size=12),
-                ticks="", showline=False)
+                ticks="", showline=False, fixedrange=True)
     pio.templates[TEMPLATE] = go.layout.Template(layout=dict(
         font=dict(family="Inter, system-ui, sans-serif", size=13, color=COLORS["text_2"]),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor=COLORS["surface"],
         colorway=[COLORS["accent"], COLORS["peer_a"], COLORS["peer_b"], COLORS["range"]],
-        xaxis=axis, yaxis=axis, showlegend=False, margin=dict(l=8, r=8, t=8, b=8),
+        xaxis=axis, yaxis=axis, showlegend=False, margin=dict(l=8, r=8, t=8, b=8), dragmode=False,
         hoverlabel=dict(bgcolor=COLORS["surface_2"], bordercolor=COLORS["line"],
                         font=dict(family="Inter, system-ui, sans-serif", color=COLORS["text"])),
         separators=".,",

@@ -23,6 +23,7 @@ How much of a typical large jet fuel move comes from crude (Brent) and how much 
      USD; typical range = the interquartile range. Fewer than MIN_EPISODES -> neutral 50/50, labelled.
 """
 from datetime import timedelta
+import random
 from statistics import median, quantiles
 
 SMOOTHING_DAYS = 5
@@ -67,6 +68,18 @@ def find_episodes(prices, start, end, threshold=THRESHOLD_USD_T, window_days=WIN
     return episodes
 
 
+def median_interval(shares, draws=2000, seed=2026, level=0.95):
+    """Bootstrap interval for the median crude share: resample the moves with replacement, take each median.
+
+    It treats the moves as independent, which they are not (36 of the 81 moves in the 5-year window end in 2022), so it is
+    a guide to how loose the median is, not a strict statistical statement. Fixed seed: same answer every run.
+    """
+    rng = random.Random(seed)
+    meds = sorted(median(rng.choices(shares, k=len(shares))) for _ in range(draws))
+    tail = (1 - level) / 2
+    return meds[int(tail * draws)], meds[int((1 - tail) * draws) - 1]
+
+
 def benchmark_split(prices, end_day, move=100.0, years=LOOKBACK_YEARS, latest_day=None):
     """The data-driven split for the scenario move: large moves in the `years` before `end_day` (the baseline).
 
@@ -87,7 +100,7 @@ def benchmark_split(prices, end_day, move=100.0, years=LOOKBACK_YEARS, latest_da
     mid = median(shares)
     crude = round(min(max(mid, 0.0), 1.0) * move)
     return {**base, "split": (float(crude), float(move - crude)), "median": mid, "q1": q1, "q3": q3,
-            "fallback": False}
+            "interval": median_interval(shares), "fallback": False}
 
 
 def lookback_table(prices, end_day, years=SENSITIVITY_YEARS):

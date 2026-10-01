@@ -20,11 +20,11 @@ def apply_overrides(twins, pass_shift_pp=0.0, lh_hedge=None):
             field = record["fields"]["recapture_rate"]
             if field["value"] is not None:
                 field["value"] = min(100.0, max(0.0, field["value"] + pass_shift_pp))
-                field["note"] = f"Scenario (Step 10): printed rate {pass_shift_pp:+.0f} pp"
+                field["note"] = f"Scenario (Step 9): printed rate {pass_shift_pp:+.0f} pp"
     if lh_hedge:
         fields = out["airlines"][US]["fields"]
         fields["hedge_ratio_fy27"]["value"], fields["hedge_ratio_fy27_upper"]["value"] = float(lh_hedge[0]), float(lh_hedge[1])
-        fields["hedge_ratio_fy27"]["note"] = fields["hedge_ratio_fy27_upper"]["note"] = "Scenario (Step 10)"
+        fields["hedge_ratio_fy27"]["note"] = fields["hedge_ratio_fy27_upper"]["note"] = "Scenario (Step 9)"
     return out
 
 

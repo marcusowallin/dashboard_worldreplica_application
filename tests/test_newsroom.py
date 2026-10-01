@@ -137,8 +137,12 @@ def fake_web_response(results, error=False):
 
 class FakeWebClient:
     def __init__(self, response):
-        self.sent = []
+        self.sent, self.options = [], []
         self.messages = SimpleNamespace(create=lambda **kw: self.sent.append(kw) or response)
+
+    def with_options(self, **options):                      # the real SDK returns a client with these options
+        self.options.append(options)
+        return self
 
 
 def test_search_web_keeps_only_headline_outlet_date_link():
@@ -151,6 +155,9 @@ def test_search_web_keeps_only_headline_outlet_date_link():
                         "domain": "www.reuters.com", "outlet": "Reuters", "seen": "2 days", "source": "web search"}
     tool = client.sent[0]["tools"][0]
     assert tool["type"] == "web_search_20250305" and tool["max_uses"] == 3       # basic variant for Haiku 4.5
+    from src.news_tagger import MAJOR_DOMAINS, WEB_SEARCH_TIMEOUT_S
+    assert tool["allowed_domains"] == MAJOR_DOMAINS and "reuters.com" in MAJOR_DOMAINS and "cnbc.com" not in MAJOR_DOMAINS
+    assert client.options == [{"timeout": WEB_SEARCH_TIMEOUT_S}]                 # a 3-search request gets 90 s, not 30
 
 
 def test_search_web_error_block_is_reported_not_raised():
@@ -200,3 +207,59 @@ def test_evaluation_script_flags_bad_impact_labels():
                            "label_impact": "lufthansa:good; iag:negative"})]
     problems = module.label_problems(labels)
     assert any("lufthansa:good" in p for p in problems) and any("not in label_airlines" in p for p in problems)
+
+
+# --- design review (2 Oct 2026): failures must not lock the button; operational constants are pinned ---------------
+
+def test_a_failed_fetch_starts_a_short_retry_window_not_the_ten_minute_cooldown():
+    from src.news_tagger import COOLDOWN, RETRY_AFTER_FAILURE, NewsStore, refresh
+    store = NewsStore()
+    calls = []
+
+    def failing():
+        calls.append(1)
+        return [], "The news feed answered HTTP 429."
+
+    assert "429" in refresh(store, NOW, fetch=failing)
+    assert store.last_refresh is None and store.last_failure == NOW          # no 'refreshed recently' after a failure
+    assert "try again in" in refresh(store, NOW + RETRY_AFTER_FAILURE / 2, fetch=failing) and len(calls) == 1
+    refresh(store, NOW + RETRY_AFTER_FAILURE + timedelta(seconds=1), fetch=failing)
+    assert len(calls) == 2                                                     # retried after seconds, not after 10 minutes
+    ok = refresh(store, NOW + timedelta(minutes=2), fetch=fetch_of([{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}]))
+    assert store.last_refresh == NOW + timedelta(minutes=2) and store.last_failure is None and "fetched" in ok
+    assert "Refreshed recently" in refresh(store, NOW + timedelta(minutes=2) + COOLDOWN / 2, fetch=failing)
+
+
+def test_a_web_search_timeout_is_not_counted_against_the_daily_cap():
+    from src.news_tagger import WEB_TIMEOUT_MESSAGE, NewsStore, refresh_web
+    store = NewsStore()
+    timed_out = lambda client: ([], WEB_TIMEOUT_MESSAGE, 0)                    # noqa: E731
+    message = refresh_web(store, NOW, FakeClient([]), timed_out)
+    assert "not counted" in message and store.web_last is None and store.web_calls_by_day == {}
+    refresh_web(store, NOW, FakeClient([]), lambda client: ([], None, 1))      # a search that answered is counted
+    assert store.web_last == NOW and sum(store.web_calls_by_day.values()) == 1
+
+
+def test_summary_skips_tags_whose_quote_was_not_found_and_survives_a_concurrent_insert():
+    from src.news_tagger import NewsStore, headline_key, seven_day_summary
+    store = NewsStore()
+    h1, h2 = {"title": "Lufthansa fuel bill up"}, {"title": "IAG fuel bill up"}
+    for h in (h1, h2):
+        store.archive[headline_key(h["title"])] = (h, NOW)
+    base = {"relevant": True, "airlines": ["lufthansa"], "driver": "fuel_price", "direction": "cost_up", "severity": 2,
+            "evidence": "x", "impacts": {"lufthansa": "negative"}}
+    store.tags[headline_key(h1["title"])] = {**base, "evidence_ok": True}
+    store.tags[headline_key(h2["title"])] = {**base, "evidence_ok": False}
+    summary = seven_day_summary(store, NOW)
+    assert summary["headlines"] == 1 and summary["unconfirmed"] == 1 and summary["impacts"]["lufthansa"]["negative"] == 1
+
+
+def test_operational_constants_are_pinned():
+    import src.live_state as live_state
+    import src.news_tagger as nt
+    assert nt.MODEL == "claude-haiku-4-5-20251001"
+    assert (nt.CLIENT_TIMEOUT_S, nt.CLIENT_RETRIES, nt.WEB_SEARCH_TIMEOUT_S, nt.GDELT_TIMEOUT_S) == (30.0, 1, 90.0, 20)
+    assert nt.WEB_SEARCH_MAX_USES == 3 and nt.WEB_SEARCH_DAILY_CAP == 5 and nt.DAILY_CALL_CAP == 20
+    assert nt.COOLDOWN == timedelta(minutes=10) and nt.RETRY_AFTER_FAILURE == timedelta(seconds=45)
+    assert nt.WEB_SEARCH_COOLDOWN == timedelta(minutes=30) and nt.MAX_PER_REFRESH == 20
+    assert live_state.FALLBACK_FX == 1.151 and live_state.UPDATE_COOLDOWN_S == 60
