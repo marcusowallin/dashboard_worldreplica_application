@@ -1,0 +1,4 @@
+# Local tools only (not needed by the deployed app).
+-r requirements.txt
+# macOS on-device OCR for scripts/refresh_consensus.py (reads snapshot images)
+pyobjc-framework-Vision==12.2.2; sys_platform == "darwin"

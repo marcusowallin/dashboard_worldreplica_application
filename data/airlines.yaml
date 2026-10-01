@@ -1,0 +1,1458 @@
+# Company twins - Airline Fuel Shock Monitor
+# Generated once from 03_DATA_REGISTER.md (30 Sep 2026); edit by hand from now on.
+# Status 'found' = seen in the company's document, not yet checked by you -> becomes 'verified'.
+
+meta:
+  description: 'Company twins: one record per airline, identical fields.'
+  rules: Values exactly as printed (unit as printed; the code converts). Source levels 1-5 as explained on the Method & sources page. Every assumption/derived
+    value is also listed in ASSUMPTIONS.md. Figures and quotes mirror 03_DATA_REGISTER.md.
+  status_vocabulary:
+  - verified
+  - found
+  - derived
+  - assumption
+  - third-party
+  - not-disclosed
+  - not-applicable
+  - to-extract
+  baseline_date: '2026-07-27'
+  last_updated: '2026-09-30'
+documents:
+  lh_q2_charts:
+    title: Lufthansa Q2 2026 results charts
+    date: '2026-08-04'
+    url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+  lh_ar_2025:
+    title: Lufthansa Annual Report 2025
+    date: '2026-03-06'
+    url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+  af_q2_release:
+    title: Air France-KLM Q2 2026 press release
+    date: '2026-07-30'
+    url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+  af_q2_pres:
+    title: Air France-KLM Q2 2026 results presentation
+    date: '2026-07-30'
+    url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+  af_fy25_release:
+    title: Air France-KLM FY2025 results press release
+    date: '2026-02-19'
+    url: https://www.airfranceklm.com/sites/default/files/2026-02/afklm_full_year_2025_press_release_english.pdf
+  af_q1_release:
+    title: Air France-KLM Q1 2026 press release
+    date: 2026-04
+    url: https://www.airfranceklm.com/sites/default/files/2026-04/q1-2026-afklm-press-release.pdf
+  af_urd_2025:
+    title: Air France-KLM Universal Registration Document 2025
+    date: '2026'
+    url: https://www.airfranceklm.com/en/finance/publications/latest-annual-semi-annual-documents
+    url_note: Publications page; the direct PDF link was not recorded.
+  iag_h1_release:
+    title: IAG H1 2026 results announcement
+    date: '2026-07-31'
+    url: https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/
+  iag_h1_pres:
+    title: IAG H1 2026 results presentation
+    date: '2026-07-31'
+    url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+  iag_h1_transcript:
+    title: IAG H1 2026 results call transcript
+    date: '2026-07-31'
+    url: https://www.iairgroup.com/media/ymmjb2dv/iag-h1-2026-results-call-transcript.pdf
+  iag_fy25_release:
+    title: IAG FY2025 results release
+    date: '2026-02-27'
+    url: https://www.iairgroup.com/media/wd4dsjef/full-year-results-release-for-the-year-to-31-december-2025.pdf
+  iag_ar_2025:
+    title: IAG Annual Report and Accounts 2025
+    date: '2026'
+    url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+  reuters_thestar:
+    title: Reuters article 'Lufthansa CEO says jet fuel hit to top EUR1.5 billion forecast' (reprint, The Star)
+    date: '2026-09-29'
+    url: https://www.thestar.com.my/business/business-news/2026/09/29/lufthansa-ceo-says-jet-fuel-hit-to-top-15-billion-forecast
+  lh_poll_q2:
+    title: Lufthansa Group analyst consensus poll Q2 2026 (company-compiled)
+    date: '2026-07-16'
+    url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/consensus/LHG-Consensus-Q2-2026.pdf
+  ms_lh:
+    title: MarketScreener - Lufthansa financial forecasts (snapshot 2026-09-30)
+    date: '2026-09-29'
+    url: https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/
+  ms_af:
+    title: MarketScreener - Air France-KLM financial forecasts (snapshot 2026-09-30)
+    date: '2026-09-29'
+    url: https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/
+  ms_iag:
+    title: MarketScreener - IAG financial forecasts (snapshot 2026-09-30)
+    date: '2026-09-29'
+    url: https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/
+airlines:
+  lufthansa:
+    name: Lufthansa Group
+    role: us
+    reporting_currency: EUR
+    fields:
+      fuel_volume_fy26:
+        value: 9.42
+        unit: million t
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Jet fuel volume  [mio. tons] 2.68 9.42
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: null
+      fuel_volume_q3_26:
+        value: 2.68
+        unit: million t
+        currency: null
+        period: Q3 2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Jet fuel volume  [mio. tons] 2.68 9.42
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: null
+      fuel_volume_q4_26:
+        value: null
+        unit: million t
+        currency: null
+        period: Q4 2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'Not printed (H1 fuel volume is not in the documents). Cross-check by capacity: H1 2026 ASK 157,312m of a roughly flat 2026 (FY25 338,552m) leaves Q4 at about 2.36m t after the printed Q3 2.68m t, against FY/4 = 2.355m t - no material difference, so the equal split is kept.'
+      fuel_bill_fy26:
+        value: 8.66
+        unit: bn
+        currency: EUR
+        period: FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Exp. total fuel expense [bn €] 2.43 8.66
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: Includes mandatory SAF EUR 0.20bn (fossil 8.46). Context and reconciliation only.
+      jet_price_after_hedge_fy26:
+        value: 1036
+        unit: per t
+        currency: USD
+        period: FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Jet fuel price after hedge [$/mt] 1,005 ... 1,036
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: 'Q3 2026: 1,005. Sets the cost level, not the sensitivity (methodology 2b).'
+      hedge_ratio_fy26:
+        value: 81
+        unit: '%'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Hedge ratio [%] - YTG only 82% ... FY 2026 81%
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: null
+      hedge_ratio_rest_fy26:
+        value: 82
+        unit: '%'
+        currency: null
+        period: Rest of FY2026 (year to go)
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17
+        quote: Hedge ratio [%] - YTG only 82%
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: 'Model input for rest of FY26 (decision 29 Sep 2026). Sensitivity 85%: slide 18 "YTG 85% hedged".'
+      hedge_ratio_q3_26:
+        value: null
+        unit: '%'
+        currency: null
+        period: Q3 2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: Lufthansa prints one year-to-go ratio (hedge_ratio_rest_fy26), not separate quarters.
+      hedge_ratio_q4_26:
+        value: null
+        unit: '%'
+        currency: null
+        period: Q4 2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: Lufthansa prints one year-to-go ratio (hedge_ratio_rest_fy26), not separate quarters.
+      hedge_ratio_fy27:
+        value: 29
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.90
+        quote: Around 29% of the forecast fuel requirement for 2027 was hedged at that time.
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: found
+        note: 'Lower end of the FY27 range. Label on page: "stale - as of Dec 2025" (ASSUMPTIONS.md A2).'
+      hedge_ratio_fy27_upper:
+        value: 50
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: 2026-08
+        document: reuters_thestar
+        page: article
+        quote: Lufthansa Chief Financial Officer Till Streichert told analysts in August the group's fuel hedge
+          ratio for 2026 was 86% and a bit more than 50% in 2027.
+        url: https://www.thestar.com.my/business/business-news/2026/09/29/lufthansa-ceo-says-jet-fuel-hit-to-top-15-billion-forecast
+        level: 4
+        status: third-party
+        note: 'Upper end of the FY27 range only. "a bit more than 50%" used as 50. Label: "reported remark, not
+          printed". Snapshot: sources/third-party/2026-09-29_reuters-via-thestar_lufthansa-fuel-hedge-2027.pdf'
+      hedge_mix_gasoil:
+        value: 48
+        unit: '% of volume'
+        currency: null
+        period: Rest of FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17, footnote 2
+        quote: Hegde ratio for remaining FY 2026 comprises 48% hedge on gasoil and 33% hedge on Brent.
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: 'Read as instrument split of the hedge book (48 of 81); model applies it to the YTG ratio (ASSUMPTIONS.md
+          A1). FY27: same split (A3). Typo "Hegde" as printed.'
+      hedge_mix_brent:
+        value: 33
+        unit: '% of volume'
+        currency: null
+        period: Rest of FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17, footnote 2
+        quote: Hegde ratio for remaining FY 2026 comprises 48% hedge on gasoil and 33% hedge on Brent.
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: 33 of 81 (ASSUMPTIONS.md A1, A3).
+      hedge_mix_jet:
+        value: 0
+        unit: '% of volume'
+        currency: null
+        period: Rest of FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17, footnote 2
+        quote: Hegde ratio for remaining FY 2026 comprises 48% hedge on gasoil and 33% hedge on Brent.
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: derived
+        note: 'Formula: 81 - 48 - 33 = 0. Footnote names only gasoil and Brent.'
+      recapture_rate:
+        value: 60
+        unit: '%'
+        currency: null
+        period: Q2 2026
+        as_of: '2026-08-04'
+        document: lh_q2_charts
+        page: slide 13
+        quote: Fuel ~60% recapture rate
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: 'Printed as "~60%" for Network Airlines in the Q2 bridge. Range on page: printed value to 0% (ASSUMPTIONS.md
+          A19).'
+      tax_rate_marginal:
+        value: 25
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.282 (T109)
+        quote: 'The expected tax expense is calculated by multiplying profit before income taxes by a tax rate of
+          25% (previous year: 25%).'
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: found
+        note: Marginal rate used in the model (ASSUMPTIONS.md A17).
+      tax_rate_effective_fy25:
+        value: 29
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.44
+        quote: At 29%, the effective tax ratio for continuing operations was above the expected tax rate of 25%.
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: found
+        note: Context only (deferred-tax revaluation effects).
+      minority_share:
+        value: 1.76
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.257
+        quote: Profit/loss after income taxes 1,363 1,393 ... Profit/loss attributable to non-controlling interests
+          24 13
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: derived
+        note: 'Formula: 24 / 1,363 = 1.76% (ASSUMPTIONS.md A18).'
+      diluted_shares:
+        value: 1198342268
+        unit: shares
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.284 (T112)
+        quote: Weighted average number of shares number 1,198,342,268 1,196,675,111
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: found
+        note: Weighted average; T112 labels EPS "Basic/diluted" (1.12), so basic = diluted share count.
+      eps_fy25:
+        value: 1.12
+        unit: per share
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: p.257
+        quote: “Basic”/“diluted” earnings per share in € 16 1.12 1.15
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf
+        level: 1
+        status: found
+        note: Basic = diluted. Fallback EPS baseline only.
+      consensus_eps_fy26:
+        value: 0.9221
+        unit: per share
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_lh
+        page: Projected income statement, EPS row
+        quote: EPS 1 -2.99 0.66 1.4 1.15 1.12 0.9221 1.299 1.589
+        url: https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/
+        level: 4
+        status: third-party
+        note: Baseline EPS (decision 29 Sep 2026). 18 analysts; statistic not stated; basis treated as reported
+          diluted. Screenshots sources/third-party/2026-09-30_marketscreener_lufthansa_*.jpg
+      consensus_eps_fy27:
+        value: 1.299
+        unit: per share
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_lh
+        page: Projected income statement, EPS row
+        quote: EPS 1 -2.99 0.66 1.4 1.15 1.12 0.9221 1.299 1.589
+        url: https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/
+        level: 4
+        status: third-party
+        note: As consensus_eps_fy26.
+      consensus_ebit_fy26:
+        value: 1809
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: 'ms_lh'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 2,682 1,645 1,960 1,809 2,281 2,708 (2023-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Read from screenshot sources/third-party/2026-09-30_marketscreener_lufthansa_3-revenue.jpg (same snapshot as EPS/revenue). Basis check: provider''s 2025 EBIT 1,960 = LH printed Adjusted EBIT FY2025 1,960 (Q2 charts slide 30) -> same basis.'
+      consensus_ebit_fy27:
+        value: 2281
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: 'ms_lh'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 2,682 1,645 1,960 1,809 2,281 2,708 (2023-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Yardstick for FY2027 (ASSUMPTIONS.md A26). Read from screenshot sources/third-party/2026-09-30_marketscreener_lufthansa_3-revenue.jpg. Basis check: provider''s 2025 EBIT 1,960 = LH printed Adjusted EBIT FY2025 1,960 (Q2 charts slide 30) -> same basis.'
+      poll_ebit_fy27:
+        value: 2493
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-07-16'
+        document: 'lh_poll_q2'
+        page: 'p.1'
+        quote: 'in mEUR FY 2027 ... Adjusted EBIT 2.394 2.493 2.091 2.657 15 (Average Median Low High # of estimates)'
+        url: 'https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/consensus/LHG-Consensus-Q2-2026.pdf'
+        level: 2
+        status: found
+        note: 'Company-compiled poll, median of 15 estimates, published 16 Jul 2026 (before the move). Cross-check only (10% rule) for consensus_ebit_fy27.'
+      operating_costs_fy25:
+        value: 40799
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: 'PDF p.43, table T020'
+        quote: 'Total operating expenses 40,799 39,097 4 100'
+        url: 'https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf'
+        level: 1
+        status: found
+        note: 'Adjusted basis (excludes extraordinary items; reported IFRS figure EUR 40,890m, T022 p.46) - the cost base behind Adjusted EBIT. Group incl. MRO, Logistics, Catering. Includes fuel EUR 7,271m. Other operating income is NOT netted in.'
+      revenue_fy25:
+        value: 39597
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: 'PDF p.3 (key figures); T022 p.46'
+        quote: 'Total revenue in €m 39,597 37,581 5'
+        url: 'https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf'
+        level: 1
+        status: found
+        note: 'Group total revenue (traffic revenue 32,325).'
+      ask_fy25:
+        value: 338552
+        unit: million ASK
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_ar_2025
+        page: 'PDF p.3 (key figures)'
+        quote: 'Available seat-kilometres millions 338,552 326,176 4'
+        url: 'https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/financial-reports/annual-reports/LH-AR-2025-e.pdf'
+        level: 1
+        status: found
+        note: 'Group passenger airlines.'
+      consensus_revenue_fy26:
+        value: 42442
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_lh
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 ... 35,442 37,581 39,597 42,442 44,153 45,956 (2023-2028)'
+        url: https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales, EUR million; statistic not stated. Not used by the model (LH guides Adj. EBIT, not a margin); held for identical fields and cross-checks. Screenshot sources/third-party/2026-09-30_marketscreener_lufthansa_3-revenue.jpg'
+      consensus_revenue_fy27:
+        value: 44153
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_lh
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 ... 35,442 37,581 39,597 42,442 44,153 45,956 (2023-2028)'
+        url: https://www.marketscreener.com/quote/stock/LUFTHANSA-436827/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales FY2027, EUR million; statistic not stated. Expected revenue for the Step 6 margin (same hierarchy as the yardstick, ASSUMPTIONS.md A31). Same snapshot as EPS/EBIT (screenshot ..._3-revenue.jpg).'
+      adj_operating_profit_fy25:
+        value: 1960
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: lh_q2_charts
+        page: slide 30
+        quote: Adjusted EBIT 1,960 1,645 2,682
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: Profit reference for materiality (adjusted EBIT).
+      guidance_low:
+        value: 1.7
+        unit: bn
+        currency: EUR
+        period: FY2026
+        as_of: '2026-08-04'
+        document: lh_q2_charts
+        page: slide 20
+        quote: 'Adj. EBIT range:  €1.7 – €2.2bn'
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: Adjusted EBIT guidance. Context only.
+      guidance_high:
+        value: 2.2
+        unit: bn
+        currency: EUR
+        period: FY2026
+        as_of: '2026-08-04'
+        document: lh_q2_charts
+        page: slide 20
+        quote: 'Adj. EBIT range:  €1.7 – €2.2bn'
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: Adjusted EBIT guidance. Context only.
+      planning_fx_usd_per_eur:
+        value: 1.151
+        unit: USD per EUR
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: lh_q2_charts
+        page: slide 17, footnote 1
+        quote: assuming average rate of 1.151 USD/EUR for FY2026
+        url: https://investor-relations.lufthansagroup.com/fileadmin/downloads/en/charts-speeches/LH-QR-2026-2-charts.pdf
+        level: 1
+        status: found
+        note: Company planning rate, shown for reference; model uses live ECB rate.
+  afklm:
+    name: Air France-KLM
+    role: peer
+    reporting_currency: EUR
+    fields:
+      fuel_volume_fy26:
+        value: 8.69
+        unit: million t
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: af_q2_pres
+        page: slide 16
+        quote: Fuel bill after hedge excl SAF ($m) 6,900 ~8,900; Price after hedge ... 1,024
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: derived
+        note: 'Formula: USD 8,900m / USD 1,024/t = 8.69m t. Bill printed as "~8,900" (rounded) (ASSUMPTIONS.md A8).'
+      fuel_volume_q3_26:
+        value: 2.37
+        unit: million t
+        currency: null
+        period: Q3 2026
+        as_of: '2026-07-30'
+        document: af_q2_release
+        page: 'p.3 (Group capacity table); Q1 2026 release p.3; FY2025 release p.3; Q2 2026 presentation slide 19'
+        quote: 'Group Capacity (ASK m) 86,993 +2.6% 165,558 +3.3% | Q1 2026: 78,565 +4.0% | FY2025 release: 83,962 +6.6% 336,521 +4.9% | guidance: Total +2% to +3%'
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+        level: 1
+        status: derived
+        note: 'Not printed; fuel volume FY2026 8.69m t x Q3 share of FY2026 capacity (27.2%). Capacity (ASK m, Group): Q1-26 78,565 and Q2-26 86,993 (H1 165,558); Q1-25 = 78,565/1.040 = 75,543 and Q2-25 = 86,993/1.026 = 84,788; Q4-25 83,962; FY25 336,521, so Q3-25 = 92,227; FY26 = FY25 x 1.025 (mid of the guided +2% to +3%) = 344,934, so H2-26 = 179,376, split Q3/Q4 like H2-25. Assumes the same fuel per seat-km in every quarter (A11). Guidance range +2%..+3% moves Q3 by +/-0.01m t. Replaces the equal quarter (2.17m t).'
+      fuel_volume_q4_26:
+        value: 2.15
+        unit: million t
+        currency: null
+        period: Q4 2026
+        as_of: '2026-07-30'
+        document: af_q2_release
+        page: 'p.3 (Group capacity table); Q1 2026 release p.3; FY2025 release p.3; Q2 2026 presentation slide 19'
+        quote: 'Group Capacity (ASK m) 86,993 +2.6% 165,558 +3.3% | Q1 2026: 78,565 +4.0% | FY2025 release: 83,962 +6.6% 336,521 +4.9% | guidance: Total +2% to +3%'
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+        level: 1
+        status: derived
+        note: 'Not printed; fuel volume FY2026 8.69m t x Q4 share of FY2026 capacity (24.8%). Capacity (ASK m, Group): Q1-26 78,565 and Q2-26 86,993 (H1 165,558); Q1-25 = 78,565/1.040 = 75,543 and Q2-25 = 86,993/1.026 = 84,788; Q4-25 83,962; FY25 336,521, so Q3-25 = 92,227; FY26 = FY25 x 1.025 (mid of the guided +2% to +3%) = 344,934, so H2-26 = 179,376, split Q3/Q4 like H2-25. Assumes the same fuel per seat-km in every quarter (A11). Guidance range +2%..+3% moves Q4 by +/-0.01m t. Replaces the equal quarter (2.17m t).'
+      fuel_bill_fy26:
+        value: 8900
+        unit: m
+        currency: USD
+        period: FY2026
+        as_of: '2026-07-27'
+        document: af_q2_pres
+        page: slide 16
+        quote: Fuel bill after hedge excl SAF ($m) 6,900 ~8,900
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: found
+        note: 'Printed as "~8,900"; excludes SAF premium. Q2 release p.1: "Fuel bill is expected at USD 8.9bn".'
+      jet_price_after_hedge_fy26:
+        value: 1024
+        unit: per t
+        currency: USD
+        period: FY2026
+        as_of: '2026-07-27'
+        document: af_q2_pres
+        page: slide 16
+        quote: Price after hedge ... Jet fuel ($ per metric ton) 808 773 1,209 1,039 1,053 1,024
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: found
+        note: Q3 1,039; Q4 1,053.
+      hedge_ratio_fy26:
+        value: 67
+        unit: '%'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: af_q2_release
+        page: p.7
+        quote: The percentage of fuel consumption already hedged for 2026 is 67% and 40% for 2027.
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+        level: 1
+        status: found
+        note: null
+      hedge_ratio_rest_fy26:
+        value: null
+        unit: '%'
+        currency: null
+        period: Rest of FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: Printed per quarter (hedge_ratio_q3_26, hedge_ratio_q4_26); model works by quarter.
+      hedge_ratio_q3_26:
+        value: 66
+        unit: '%'
+        currency: null
+        period: Q3 2026
+        as_of: '2026-07-27'
+        document: af_q2_pres
+        page: slide 16
+        quote: '% of consumption already hedged 69% 71% 71% 66% 61% 67%'
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: found
+        note: Column order FY2025, Q1, Q2, Q3, Q4, FY2026.
+      hedge_ratio_q4_26:
+        value: 61
+        unit: '%'
+        currency: null
+        period: Q4 2026
+        as_of: '2026-07-27'
+        document: af_q2_pres
+        page: slide 16
+        quote: '% of consumption already hedged 69% 71% 71% 66% 61% 67%'
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: found
+        note: Column order FY2025, Q1, Q2, Q3, Q4, FY2026.
+      hedge_ratio_fy27:
+        value: 40
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: '2026-07-27'
+        document: af_q2_release
+        page: p.7
+        quote: The percentage of fuel consumption already hedged for 2026 is 67% and 40% for 2027.
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+        level: 1
+        status: found
+        note: Also P2 slide 16 "FY 2027 40% hedged"; was 33% on 24 Apr curve (Q1 slide 14).
+      hedge_ratio_fy27_upper:
+        value: null
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: 'No range needed: FY27 ratio printed as of 27 Jul 2026.'
+      hedge_mix_gasoil:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'Q1 release p.6: "using Brent ICE, Gasoil ICE and Jet CIF NWE components" - no % split. Hedge quality
+          shown as a range jet-equivalent to crude-only (ASSUMPTIONS.md A5).'
+      hedge_mix_brent:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: As hedge_mix_gasoil (ASSUMPTIONS.md A5).
+      hedge_mix_jet:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: As hedge_mix_gasoil (ASSUMPTIONS.md A5).
+      recapture_rate:
+        value: 85
+        unit: '%'
+        currency: null
+        period: Q2 2026
+        as_of: '2026-07-30'
+        document: af_q2_release
+        page: p.1
+        quote: Fuel price recapture via revenues at circa 85%, above the estimated 60%.
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/20260729-2026-q2-afklm-press-release-1.pdf
+        level: 1
+        status: found
+        note: 'Printed as "circa 85%". Range on page: printed value to 0% (ASSUMPTIONS.md A19).'
+      tax_rate_marginal:
+        value: 25.83
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: p.406 (note 13.3)
+        quote: Standard tax rate in France  25.83%  25.83%
+        url: null
+        level: 1
+        status: found
+        note: Marginal rate used in the model (ASSUMPTIONS.md A17).
+      tax_rate_effective_fy25:
+        value: 6.6
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: p.406 (note 13.3)
+        quote: Effective tax rate  6.6%  14.2 %
+        url: null
+        level: 1
+        status: found
+        note: 'Context only: depressed by a one-off EUR 404m deferred-tax release ("Add / (Release) of deferred
+          tax 404").'
+      minority_share:
+        value: 9.18
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: p.378
+        quote: Net income for the period 1,754 489 ... Net income – Non-controlling interests 161 172
+        url: null
+        level: 1
+        status: derived
+        note: 'Formula: 161 / 1,754 = 9.18% (ASSUMPTIONS.md A18).'
+      diluted_shares:
+        value: 280566634
+        unit: shares
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: p.408 (note 14)
+        quote: Number of ordinary and potential ordinary shares used to calculate diluted earnings per share 280,566,634
+        url: null
+        level: 1
+        status: found
+        note: 'Weighted average, diluted. Basic: 262,603,131.'
+      eps_fy25:
+        value: 5.5
+        unit: per share
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: p.378
+        quote: Earnings per share – Equity holders of Air France-KLM (in euros) • basic 14 5.83 0.93 • diluted 14
+          5.50 0.93
+        url: null
+        level: 1
+        status: found
+        note: Diluted. Fallback EPS baseline only. Net of perpetual coupons (URD p.408).
+      consensus_eps_fy26:
+        value: 3.004
+        unit: per share
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_af
+        page: Projected income statement, EPS row
+        quote: EPS 1 -59.5 3.1 4.1 0.93 5.5 3.004 4.418 5.285
+        url: https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/
+        level: 4
+        status: third-party
+        note: Baseline EPS. 19 analysts; statistic not stated; basis treated as reported diluted. Screenshots sources/third-party/2026-09-30_marketscreener_afklm_*.jpg
+      consensus_eps_fy27:
+        value: 4.418
+        unit: per share
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_af
+        page: Projected income statement, EPS row
+        quote: EPS 1 -59.5 3.1 4.1 0.93 5.5 3.004 4.418 5.285
+        url: https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/
+        level: 4
+        status: third-party
+        note: As consensus_eps_fy26.
+      consensus_ebit_fy26:
+        value: 1791
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: 'ms_af'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 1,601 2,004 1,791 2,140 2,473 (2024-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Read from screenshot sources/third-party/2026-09-30_marketscreener_afklm_3-revenue.jpg (same snapshot as EPS/revenue). Basis check: provider''s 2025 EBIT 2,004 = AF-KLM ''current operating income (before IFRS 18)'' FY2025 2,004 (Q2 presentation slide 23), not the adjusted operating profit after IFRS 18 (2,069, +3.2%). Used as printed; basis gap labelled (ASSUMPTIONS.md A27).'
+      consensus_ebit_fy27:
+        value: 2140
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: 'ms_af'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 1,601 2,004 1,791 2,140 2,473 (2024-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Yardstick for FY2027 (ASSUMPTIONS.md A26). Read from screenshot sources/third-party/2026-09-30_marketscreener_afklm_3-revenue.jpg. Basis check: provider''s 2025 EBIT 2,004 = AF-KLM ''current operating income (before IFRS 18)'' FY2025 2,004 (Q2 presentation slide 23), not the adjusted operating profit after IFRS 18 (2,069, +3.2%). Used as printed; basis gap labelled (ASSUMPTIONS.md A27).'
+      poll_ebit_fy27:
+        value: null
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: 'Cross-check field used for Lufthansa only (decision 30 Sep 2026); company consensus pages of the peers were not saved.'
+      operating_costs_fy25:
+        value: 31003
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: 'PDF p.378 (consolidated income statement)'
+        quote: 'Operating expenses (31,003) (29,858)'
+        url: null
+        level: 1
+        status: found
+        note: 'Income-statement subtotal before IFRS 18 presentation: revenues 33,007 - operating expenses 31,003 = income from current operations 2,004. NETS other current operating income and expenses (+1,512) into the total - not like-for-like with LH/IAG (would be 32,515 gross). Same figure in the net-cost-per-ASK table, p.376.'
+      revenue_fy25:
+        value: 33007
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: 'PDF p.378'
+        quote: 'Revenues from ordinary activities 6.1 33,007 31,459'
+        url: null
+        level: 1
+        status: found
+        note: 'Group revenues.'
+      ask_fy25:
+        value: 336577
+        unit: million ASK
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_urd_2025
+        page: 'PDF p.376 (net cost per ASK table)'
+        quote: 'Capacity produced, reported in ASK 336,577 320,678'
+        url: null
+        level: 1
+        status: found
+        note: 'Passenger network + Transavia (cargo capacity in ATK excluded). The FY2025 press release (p.3) prints Group capacity 336,521m ASK (-0.02%); the annual report figure is used.'
+      consensus_revenue_fy26:
+        value: 35208
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_af
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 14,315 26,393 30,019 31,459 33,007 35,208 36,752 38,102'
+        url: https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales, EUR million; statistic not stated. Not used by the model (no profit guidance); held for identical fields and cross-checks. Screenshot sources/third-party/2026-09-30_marketscreener_afklm_3-revenue.jpg'
+      consensus_revenue_fy27:
+        value: 36752
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_af
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 14,315 26,393 30,019 31,459 33,007 35,208 36,752 38,102'
+        url: https://www.marketscreener.com/quote/stock/AIR-FRANCE-KLM-4604/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales FY2027, EUR million; statistic not stated. Expected revenue for the Step 6 margin (same hierarchy as the yardstick, ASSUMPTIONS.md A31). Same snapshot as EPS/EBIT (screenshot ..._3-revenue.jpg).'
+      adj_operating_profit_fy25:
+        value: 2069
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: af_q2_pres
+        page: slide 23
+        quote: ADJUSTED OPERATING PROFIT (AFTER IFRS 18) 478 431 484 735 2,069
+        url: https://www.airfranceklm.com/sites/default/files/2026-07/q2_2026-afklm-results-presentation.pdf
+        level: 1
+        status: found
+        note: Restated under IFRS 18 (2,004 before). Profit reference for materiality.
+      guidance_low:
+        value: null
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: No profit guidance printed (capacity, unit cost, capex, leverage only - Q2 release p.1).
+      guidance_high:
+        value: null
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: As guidance_low.
+      planning_fx_usd_per_eur:
+        value: null
+        unit: USD per EUR
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'Searched 30 Sep 2026: Q2 and Q1 2026 releases and presentations, FY25 release - no planning USD/EUR
+          rate printed. Not a model input (reference only; model uses live ECB rate). Not available from MarketScreener
+          either (it does not publish company planning rates).'
+  iag:
+    name: IAG
+    role: peer
+    reporting_currency: EUR
+    fields:
+      fuel_volume_fy26:
+        value: 8.61
+        unit: million t
+        currency: null
+        period: FY2026
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.286
+        quote: Total jet fuel consumed MT fuel 8.61 8.55 9.65
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 5
+        status: assumption
+        note: 'FY25 printed volume held flat for FY26 because capacity is guided flat (H1 presentation slide 28:
+          "Capacity (ASK) now expected to be flat in 2026 compared to 2025") (ASSUMPTIONS.md A9).'
+      fuel_volume_q3_26:
+        value: null
+        unit: million t
+        currency: null
+        period: Q3 2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: No quarterly volume printed.
+      fuel_volume_q4_26:
+        value: null
+        unit: million t
+        currency: null
+        period: Q4 2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'Not printed. The saved documents give only FY2025 ASK 351,435m and Q4 2025 85,848m (24.4% of the year, against 25%) - no Q1-Q3 group capacity - so the equal split is kept; the Q4 difference would be about -2%.'
+      fuel_bill_fy26:
+        value: 8.6
+        unit: bn
+        currency: EUR
+        period: FY2026
+        as_of: '2026-07-27'
+        document: iag_h1_release
+        page: p.1
+        quote: Total fuel cost scenarios from €8.3 billion based on 30 June 2026 curve, to €8.6 billion based on
+          27 July 2026 curve
+        url: https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/
+        level: 1
+        status: found
+        note: 'Includes emissions charges and SAF premia (FY25: ETS/CORSIA EUR 378m, SAF EUR 222m of EUR 7,083m
+          - AR p.35). No FY26 split.'
+      jet_price_after_hedge_fy26:
+        value: null
+        unit: per t
+        currency: USD
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'Printed per quarter only (slide 30, 27 Jul curve): Q3 26 $905/mt, Q4 26 $975/mt, excluding into-plane
+          cost.'
+      hedge_ratio_fy26:
+        value: 70
+        unit: '%'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-27'
+        document: iag_h1_pres
+        page: slide 30
+        quote: Fuel hedging - c70% hedged for 2026
+        url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+        level: 1
+        status: found
+        note: Printed as "c70%" (circa).
+      hedge_ratio_rest_fy26:
+        value: null
+        unit: '%'
+        currency: null
+        period: Rest of FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: Printed per quarter (hedge_ratio_q3_26, hedge_ratio_q4_26); model works by quarter.
+      hedge_ratio_q3_26:
+        value: 74
+        unit: '%'
+        currency: null
+        period: Q3 2026
+        as_of: '2026-07-27'
+        document: iag_h1_pres
+        page: slide 30
+        quote: As per 27/07/26 jet curve Q3 2026 Q4 2026 Q1 2027 Q2 2027 Q3 2027 Q4 2027 ... Hedge ratio  74 %  65
+          %  55 %  48 %  39 %  31 %
+        url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+        level: 1
+        status: found
+        note: null
+      hedge_ratio_q4_26:
+        value: 65
+        unit: '%'
+        currency: null
+        period: Q4 2026
+        as_of: '2026-07-27'
+        document: iag_h1_pres
+        page: slide 30
+        quote: As per 27/07/26 jet curve Q3 2026 Q4 2026 Q1 2027 Q2 2027 Q3 2027 Q4 2027 ... Hedge ratio  74 %  65
+          %  55 %  48 %  39 %  31 %
+        url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+        level: 1
+        status: found
+        note: null
+      hedge_ratio_fy27:
+        value: 43.25
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: '2026-07-27'
+        document: iag_h1_pres
+        page: slide 30
+        quote: Hedge ratio  74 %  65 %  55 %  48 %  39 %  31 %
+        url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+        level: 1
+        status: derived
+        note: 'Formula: (55 + 48 + 39 + 31) / 4 = 43.25 (simple average of printed 2027 quarters; no weights printed)
+          (ASSUMPTIONS.md A4). Cross-check: call transcript p.4 "around 40% hedge for 2027".'
+      hedge_ratio_fy27_upper:
+        value: null
+        unit: '%'
+        currency: null
+        period: FY2027
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: 'No range needed: derived from quarterly ratios printed as of 27 Jul 2026.'
+      hedge_mix_gasoil:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: 'H1 announcement p.10: "In the near-term, the Group hedges its anticipated jet fuel exposure using
+          a greater proportion of jet fuel derivatives. Further out, the Group uses more liquid proxy instruments,
+          primarily Brent crude oil and gasoil" - no % split. Range jet-equivalent to crude-only (ASSUMPTIONS.md
+          A5).'
+      hedge_mix_brent:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: As hedge_mix_gasoil (ASSUMPTIONS.md A5).
+      hedge_mix_jet:
+        value: null
+        unit: '% of volume'
+        currency: null
+        period: FY2026
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-disclosed
+        note: As hedge_mix_gasoil (ASSUMPTIONS.md A5).
+      recapture_rate:
+        value: 60
+        unit: '%'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-31'
+        document: iag_h1_release
+        page: p.1
+        quote: We continue to expect to recover around 60% of the higher fuel cost, through both revenue and cost
+          initiatives
+        url: https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/
+        level: 1
+        status: found
+        note: 'Printed as "around 60%", revenue AND cost initiatives. Range on page: printed value to 0% (ASSUMPTIONS.md
+          A19).'
+      tax_rate_marginal:
+        value: 24
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.37
+        quote: The geographical distribution of profits and losses in the Group results in the expected tax rate
+          being 24% for the year.
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 1
+        status: found
+        note: Marginal rate used in the model (ASSUMPTIONS.md A17).
+      tax_rate_effective_fy25:
+        value: 25.8
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.37
+        quote: 'the effective tax rate was 25.8% (2024: 23.3%)'
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 1
+        status: found
+        note: Context only.
+      minority_share:
+        value: 0
+        unit: '%'
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.154
+        quote: 'Attributable to: Equity holders of the parent 3,342 2,732 Non-controlling interest – –'
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 1
+        status: found
+        note: Non-controlling interest printed as nil.
+      diluted_shares:
+        value: 5031980
+        unit: thousand shares
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.187 (note 11)
+        quote: Weighted average number of ordinary shares used for diluted earnings per share  5,031,980  5,259,658
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 1
+        status: found
+        note: In THOUSANDS as printed ('000). Includes assumed conversion of the EUR 825m convertible bonds (250,534
+          thousand); diluted earnings add back EUR 158m bond impact. Basic 4,690,069 thousand.
+      eps_fy25:
+        value: 69.5
+        unit: cents per share
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: p.154
+        quote: Diluted earnings per share (€ cents) 11 69.5 55.5
+        url: https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf
+        level: 1
+        status: found
+        note: In EUR CENTS as printed (= EUR 0.695). Basic 71.3. Fallback EPS baseline only.
+      consensus_eps_fy26:
+        value: 0.6097
+        unit: per share
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_iag
+        page: Projected income statement, EPS row
+        quote: EPS 1 -0.591 0.061 0.506 0.555 0.695 0.6097 0.7839 0.9343
+        url: https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/
+        level: 4
+        status: third-party
+        note: Baseline EPS, in EUR (not cents). 15 analysts; statistic not stated; basis treated as reported diluted.
+          Screenshots sources/third-party/2026-09-30_marketscreener_iag_*.jpg
+      consensus_eps_fy27:
+        value: 0.7839
+        unit: per share
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_iag
+        page: Projected income statement, EPS row
+        quote: EPS 1 -0.591 0.061 0.506 0.555 0.695 0.6097 0.7839 0.9343
+        url: https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/
+        level: 4
+        status: third-party
+        note: As consensus_eps_fy26.
+      consensus_ebit_fy26:
+        value: 4481
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: 'ms_iag'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 4,283 5,024 4,481 5,054 5,427 (2024-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Read from screenshot sources/third-party/2026-09-30_marketscreener_iag_3-revenue.jpg (same snapshot as EPS/revenue). Basis check: provider''s 2025 EBIT 5,024 = IAG printed operating profit before exceptional items FY2025 5,024 (FY25 release p.2) -> same basis.'
+      consensus_ebit_fy27:
+        value: 5054
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: 'ms_iag'
+        page: 'Projected income statement, EBIT row'
+        quote: 'EBIT 1 4,283 5,024 4,481 5,054 5,427 (2024-2028)'
+        url: 'https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/'
+        level: 4
+        status: third-party
+        note: 'Consensus EBIT, EUR million; statistic not stated. Yardstick for FY2027 (ASSUMPTIONS.md A26). Read from screenshot sources/third-party/2026-09-30_marketscreener_iag_3-revenue.jpg. Basis check: provider''s 2025 EBIT 5,024 = IAG printed operating profit before exceptional items FY2025 5,024 (FY25 release p.2) -> same basis.'
+      poll_ebit_fy27:
+        value: null
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: null
+        document: null
+        page: null
+        quote: null
+        url: null
+        level: null
+        status: not-applicable
+        note: 'Cross-check field used for Lufthansa only (decision 30 Sep 2026); company consensus pages of the peers were not saved.'
+      operating_costs_fy25:
+        value: 28189
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: 'PDF p.154 (consolidated income statement)'
+        quote: 'Total expenditure on operations 28,189 27,817'
+        url: 'https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf'
+        level: 1
+        status: found
+        note: 'No exceptional items in 2025 (p.229: 28,189 before and after). Includes fuel costs and emissions charges EUR 7,083m. Other revenue is in revenue, not netted.'
+      revenue_fy25:
+        value: 33213
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: 'PDF p.154'
+        quote: 'Total revenue 5 33,213 32,100'
+        url: 'https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf'
+        level: 1
+        status: found
+        note: 'Group total revenue.'
+      ask_fy25:
+        value: 351435
+        unit: million ASK
+        currency: null
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_ar_2025
+        page: 'PDF p.253 (operating and financial statistics)'
+        quote: 'Available seat km (ASK) million 351,435 343,253 323,111 263,592 121,965'
+        url: 'https://www.iairgroup.com/media/ktnlp1jx/iag-annual-report-and-accounts-2025.pdf'
+        level: 1
+        status: found
+        note: 'Total Group operations.'
+      consensus_revenue_fy26:
+        value: 34260
+        unit: m
+        currency: EUR
+        period: FY2026
+        as_of: '2026-09-29'
+        document: ms_iag
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 8,455 23,066 29,453 32,100 33,213 34,260 35,971 37,390'
+        url: https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales, EUR million; statistic not stated. Revenue base for IAG''s 12-15% operating-margin guidance position (decision 30 Sep 2026). Screenshot sources/third-party/2026-09-30_marketscreener_iag_3-revenue.jpg'
+      consensus_revenue_fy27:
+        value: 35971
+        unit: m
+        currency: EUR
+        period: FY2027
+        as_of: '2026-09-29'
+        document: ms_iag
+        page: Projected income statement, Net sales row
+        quote: 'Net sales 1 8,455 23,066 29,453 32,100 33,213 34,260 35,971 37,390'
+        url: https://www.marketscreener.com/quote/stock/INTERNATIONAL-CONSOLIDATE-7184685/finances/
+        level: 4
+        status: third-party
+        note: 'Consensus net sales FY2027, EUR million; statistic not stated. Expected revenue for the Step 6 margin (same hierarchy as the yardstick, ASSUMPTIONS.md A31). Same snapshot as EPS/EBIT (screenshot ..._3-revenue.jpg).'
+      adj_operating_profit_fy25:
+        value: 5024
+        unit: m
+        currency: EUR
+        period: FY2025
+        as_of: '2025-12-31'
+        document: iag_fy25_release
+        page: p.2
+        quote: Operating profit before exceptional items1  5,024  4,443  13.1 %
+        url: https://www.iairgroup.com/media/wd4dsjef/full-year-results-release-for-the-year-to-31-december-2025.pdf
+        level: 1
+        status: found
+        note: Before exceptional items. Profit reference for materiality.
+      guidance_low:
+        value: 12
+        unit: '% operating margin'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-31'
+        document: iag_h1_release
+        page: p.1
+        quote: We expect to deliver full year operating margin within our 12% to 15% target range
+        url: https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/
+        level: 1
+        status: found
+        note: Margin target range, not an amount. Context only.
+      guidance_high:
+        value: 15
+        unit: '% operating margin'
+        currency: null
+        period: FY2026
+        as_of: '2026-07-31'
+        document: iag_h1_release
+        page: p.1
+        quote: We expect to deliver full year operating margin within our 12% to 15% target range
+        url: https://www.iairgroup.com/press-releases/2026/iag-half-year-results-2026/
+        level: 1
+        status: found
+        note: Margin target range, not an amount. Context only.
+      planning_fx_usd_per_eur:
+        value: 1.143
+        unit: USD per EUR
+        currency: null
+        period: Q3 2026 - Q4 2027
+        as_of: '2026-07-27'
+        document: iag_h1_pres
+        page: slide 30
+        quote: $/€ scenario 1.143 1.143 1.143 1.143 1.143 1.143
+        url: https://www.iairgroup.com/media/pwslnxy2/iag-results-presentation-q2-2026.pdf
+        level: 1
+        status: found
+        note: Company scenario rate, shown for reference; model uses live ECB rate.

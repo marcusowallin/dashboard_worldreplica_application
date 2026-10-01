@@ -1,0 +1,17 @@
+# Company PDFs: linked with page numbers, never republished
+sources/
+
+# Secrets - never commit
+.streamlit/secrets.toml
+.env
+.env.*
+
+# Local Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS clutter
+.DS_Store

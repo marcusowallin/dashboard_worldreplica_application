@@ -1,0 +1,26 @@
+# Streamlit settings (safe to commit - no secrets here).
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"   # no Deploy button / developer menu for visitors
+
+# Design system (DESIGN_BRIEF.md sections 2-3). Colours mirror src/ui/theme.py - change both together.
+[theme]
+base = "dark"
+primaryColor = "#2DD4E0"
+backgroundColor = "#0B0C10"
+secondaryBackgroundColor = "#111318"
+textColor = "#F3F4F6"
+linkColor = "#2DD4E0"
+borderColor = "#262930"
+dataframeBorderColor = "#262930"
+showWidgetBorder = true
+baseRadius = "12px"
+buttonRadius = "10px"
+baseFontSize = 16
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Manrope:https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap, sans-serif"
+codeFont = "JetBrains Mono:https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap, monospace"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+chartCategoricalColors = ["#2DD4E0", "#9D92D8", "#D3A35E", "#4A4F5A"]
