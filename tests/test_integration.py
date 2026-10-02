@@ -132,3 +132,13 @@ def test_no_chart_on_any_page_can_be_zoomed(fake_world):
         assert layout["dragmode"] is False
         assert layout["xaxis"]["fixedrange"] is True and layout["yaxis"]["fixedrange"] is True
         assert json.loads(chart.proto.config)["scrollZoom"] is False
+
+
+def test_the_word_pass_through_is_defined_before_it_is_used_on_the_story_page(fake_world):
+    import streamlit as st
+    from src.story.steps import PASS_THROUGH_DEFINITION
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    html = _html(AppTest.from_file(APP, default_timeout=90).run()).lower()
+    first_use = html.index("pass-through")
+    assert first_use == html.index(PASS_THROUGH_DEFINITION.lower()[:12])             # the first use IS the definition

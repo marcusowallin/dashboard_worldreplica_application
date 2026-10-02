@@ -113,6 +113,10 @@ def _mag(rng):
     return tuple(sorted(abs(x) for x in rng))
 
 
+PASS_THROUGH_DEFINITION = ("Pass-through is the share of the extra fuel cost an airline recovers from passengers, through "
+                           "fares and surcharges.")
+
+
 def bill_step(gross27, net27, recapture, net_at_low27, per_tonne, falling=False):
     """Step 3 - the fuel bill after hedging, what fares recover, and what is left (net = the answer's euro figures).
 
@@ -131,7 +135,7 @@ def bill_step(gross27, net27, recapture, net_at_low27, per_tonne, falling=False)
                     f"{recapture[US] * 100:.0f}% leaves {lh} net. {AIRLINE_SHORT[top]}, passing on {word}"
                     f"{recapture[top] * 100:.0f}%, is left with {peer}.")
     tonne = lambda a: f"EUR {_mag(per_tonne[a])[0]:.0f}{DASH}{_mag(per_tonne[a])[1]:.0f}"      # noqa: E731
-    body = (f"Per tonne of fuel the net cost is {tonne(US)} at Lufthansa, {tonne('afklm')} at {AIRLINE_SHORT['afklm']} and "
+    body = (f"{PASS_THROUGH_DEFINITION} Per tonne of fuel the net cost is {tonne(US)} at Lufthansa, {tonne('afklm')} at {AIRLINE_SHORT['afklm']} and "
             f"{tonne('iag')} at IAG. {AIRLINE_SHORT[top]}'s circa 85% is one quarter's actual; the other rates are the "
             f"airlines' own estimates. At 50%, {AIRLINE_SHORT[top]} would be left with "
             f"{story_eur_m_range(*_mag(net_at_low27[top]))}.")

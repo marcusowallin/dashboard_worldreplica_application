@@ -1,0 +1,298 @@
+[
+  {
+    "relevant": true,
+    "airlines": [
+      "lufthansa"
+    ],
+    "driver": "guidance",
+    "direction": "cost_up",
+    "severity": 3,
+    "evidence": "jet fuel hit to top \u20ac1.5bn forecast",
+    "evidence_ok": true,
+    "impacts": {
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "lufthansa"
+    ],
+    "driver": "guidance",
+    "direction": "cost_up",
+    "severity": 3,
+    "evidence": "\u20ac1.7bn fuel cost hit",
+    "evidence_ok": true,
+    "impacts": {
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "lufthansa"
+    ],
+    "driver": "fuel_price",
+    "direction": "cost_up",
+    "severity": 3,
+    "evidence": "Fuel Bill Is Set To Top \u20ac1.5 Billion",
+    "evidence_ok": true,
+    "impacts": {
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "lufthansa"
+    ],
+    "driver": "fuel_price",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "Rising Jet Fuel Costs Weigh Even More Heavily on Lufthansa",
+    "evidence_ok": true,
+    "impacts": {
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "lufthansa"
+    ],
+    "driver": "disruption",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "Lufthansa Strike Update Today 2026",
+    "evidence_ok": true,
+    "impacts": {
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "",
+    "evidence_ok": false,
+    "impacts": {}
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm"
+    ],
+    "driver": "fuel_price",
+    "direction": "cost_up",
+    "severity": 3,
+    "evidence": "Fuel Bill Jumps $2.4B",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm"
+    ],
+    "driver": "capacity",
+    "direction": "unclear",
+    "severity": 2,
+    "evidence": "Cuts Capacity Growth Again",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "neutral"
+    }
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "",
+    "evidence_ok": false,
+    "impacts": {}
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "",
+    "evidence_ok": false,
+    "impacts": {}
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "",
+    "evidence_ok": false,
+    "impacts": {}
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "iag"
+    ],
+    "driver": "pass_through",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "ticket price hikes amid fuel crisis",
+    "evidence_ok": true,
+    "impacts": {
+      "iag": "positive"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "iag"
+    ],
+    "driver": "guidance",
+    "direction": "cost_down",
+    "severity": 2,
+    "evidence": "Fuel Bill Forecast Eases",
+    "evidence_ok": true,
+    "impacts": {
+      "iag": "positive"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "iag"
+    ],
+    "driver": "capacity",
+    "direction": "unclear",
+    "severity": 2,
+    "evidence": "Cuts 2026 Capacity Outlook",
+    "evidence_ok": false,
+    "impacts": {
+      "iag": "neutral"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "iag"
+    ],
+    "driver": "pass_through",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "Fare Increases Amid Elevated Fuel Costs",
+    "evidence_ok": true,
+    "impacts": {
+      "iag": "positive"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm",
+      "iag",
+      "lufthansa"
+    ],
+    "driver": "fuel_price",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "jetfuel crisis",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "negative",
+      "iag": "negative",
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm",
+      "iag",
+      "lufthansa"
+    ],
+    "driver": "fuel_price",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "Jet fuel price surge",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "negative",
+      "iag": "negative",
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm",
+      "iag",
+      "lufthansa"
+    ],
+    "driver": "jet_premium",
+    "direction": "cost_down",
+    "severity": 1,
+    "evidence": "European jet fuel prices ease",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "positive",
+      "iag": "positive",
+      "lufthansa": "positive"
+    }
+  },
+  {
+    "relevant": true,
+    "airlines": [
+      "afklm",
+      "iag",
+      "lufthansa"
+    ],
+    "driver": "jet_premium",
+    "direction": "cost_up",
+    "severity": 2,
+    "evidence": "Jet fuel bidding war breaks out",
+    "evidence_ok": true,
+    "impacts": {
+      "afklm": "negative",
+      "iag": "negative",
+      "lufthansa": "negative"
+    }
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "",
+    "evidence_ok": false,
+    "impacts": {}
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "Middle East airspace restrictions crisis",
+    "evidence_ok": true,
+    "impacts": {}
+  },
+  {
+    "relevant": false,
+    "airlines": [],
+    "driver": "other",
+    "direction": "unclear",
+    "severity": 1,
+    "evidence": "Alaska Air bets on premium travel to boost profit as fuel costs bite",
+    "evidence_ok": true,
+    "impacts": {}
+  }
+]

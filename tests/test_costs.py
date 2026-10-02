@@ -193,3 +193,15 @@ def test_profit_step_says_similar_only_when_all_three_margins_are_close():
     assert "under 1 pp at all three" in spread["headline"]
     big = profit_step(_synthetic_p27({"lufthansa": -0.0150, "afklm": -0.0140, "iag": -0.0025}))
     assert "similar" not in big["headline"] and "under 1 pp" not in big["headline"]
+
+
+def test_pass_through_is_defined_where_the_page_first_needs_it():
+    """The term must not be used before it is explained: the definition opens the fuel-bill chapter's body."""
+    from src.story.steps import PASS_THROUGH_DEFINITION, bill_step
+    c27 = cost_cases(TWINS, "FY2027", FX, SPLIT)
+    args = ({a: summary(r, "gross") for a, r in c27.items()}, {a: summary(r, "net") for a, r in c27.items()},
+            {a: get_model_value(TWINS, a, "recapture_rate") for a in AIRLINES},
+            {a: summary(r, "net_at_low") for a, r in c27.items()}, {a: (20.0, 30.0) for a in AIRLINES})
+    assert bill_step(*args)["body"].startswith(PASS_THROUGH_DEFINITION)
+    assert bill_step(*args, falling=True)["body"].startswith(PASS_THROUGH_DEFINITION)
+    assert "recovers from passengers" in PASS_THROUGH_DEFINITION and len(PASS_THROUGH_DEFINITION.split()) <= 25
