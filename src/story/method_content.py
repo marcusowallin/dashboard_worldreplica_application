@@ -80,8 +80,8 @@ SOURCE_VERDICTS = (
     ("Bloomberg, CNBC, CNN, CBS News, NBC News, NPR, Washington Post, Fortune, Forbes, Axios, Yahoo Finance, "
      "Investing.com, MarketScreener, Morningstar, Nasdaq, OilPrice.com, Rigzone, Argus, S&P Global, FlightGlobal, "
      "City AM, Proactive Investors, London South East, Business Traveller, Handelsblatt", "on request",
-     "Accepted by Anthropic's web search (tested 6 Oct 2026), mostly US and UK. Reached on request through web "
-     "search, and automatically when the live feed is busy (headline, outlet, date and link only), with strict limits."),
+     "Accepted by Anthropic's web search (tested 6 Oct 2026), mostly US and UK. Reached through web search when "
+     "the live feed is busy or finds few headlines (headline, outlet, date and link only), with strict limits."),
     ("Lufthansa Group, Air France-KLM, OPEC, Travel Weekly", "out", "Automated access is blocked (HTTP 403)."),
     ("IAG, Airlines for Europe (A4E), EASA (incl. conflict-zone bulletins)", "out",
      "No feed; we do not scrape their pages."),

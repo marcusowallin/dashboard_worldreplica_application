@@ -26,7 +26,14 @@ def test_keyword_rule_reasons():
     assert match_reason("Lufthansa cuts winter flights") == "airline"
     assert match_reason("Kerosinpreis steigt weiter") == "fuel"                      # German fuel term
     assert match_reason("Brent jumps as airlines brace for costs") == "general+aviation"
-    assert match_reason("Brent jumps on OPEC cut") is None                           # market term, no aviation word
+    assert match_reason("Brent jumps on OPEC cut") == "oil"                          # oil supply news passes alone (7 Oct)
+    assert match_reason("Strait of Hormuz closure sends oil prices higher") == "oil"
+    assert match_reason("US tariffs hit airlines and aircraft makers") == "conflict+energy/aviation"
+    assert match_reason("Sanctions on Russia squeeze fuel exports") == "conflict+energy/aviation"
+    assert match_reason("Iran war puts oil exports at risk") == "oil"
+    assert match_reason("Gaza war: petrol prices climb") == "conflict+energy/aviation"
+    assert match_reason("Tariffs on imported furniture rise") is None                # conflict word, no energy / aviation
+    assert match_reason("Ukraine war: football league postponed") is None
     assert match_reason("Football club signs striker") is None
     assert match_reason("Iberian ham exports rise") is None                          # word boundary: not 'Iberia'
     assert match_reason("B & B Theatres Opening Soon in New Iberia") is None         # place name (seen 1 Oct 2026)
@@ -36,6 +43,14 @@ def test_keyword_rule_reasons():
 def test_keep_adds_reason_and_drops_noise():
     kept = keep([{"title": "Jet fuel hits a two-year high"}, {"title": "Stocks rally on tech earnings"}])
     assert [k["match"] for k in kept] == ["fuel"]
+
+
+def test_airline_news_ranks_before_oil_and_conflict_news():
+    from src.news_keywords import prioritise
+    kept = keep([{"title": "Iran war puts oil exports at risk"}, {"title": "Brent jumps on OPEC cut"},
+                 {"title": "Gaza war: petrol prices climb"}, {"title": "Jet fuel hits a two-year high"},
+                 {"title": "Lufthansa cuts winter flights"}])
+    assert [k["match"] for k in prioritise(kept)] == ["airline", "fuel", "oil", "oil", "conflict+energy/aviation"]
 
 
 def test_duplicates_merge_with_also_reported_by():
@@ -299,10 +314,17 @@ def test_refresh_news_falls_back_to_a_web_search_without_showing_an_error():
     assert "busy" in refresh_news(NewsStore(), NOW, None, fetch=failing)
     # the live feed works: no web search is run
     ran = []
-    ok = fetch_of([{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}])
-    refresh_news(NewsStore(), NOW, FakeClient([tag(0, "Lufthansa fuel hedge")]), fetch=ok,
+    words = ("alpha", "bravo", "charlie", "delta", "echo")                    # story_key ignores words of 1-2 characters
+    five = [{"title": f"Lufthansa fuel hedge {w} story", "url": f"https://x.example/{w}"} for w in words]
+    refresh_news(NewsStore(), NOW, FakeClient([tag(n, five[n]["title"]) for n in range(5)]), fetch=fetch_of(*five),
                  search=lambda client: ran.append(1) or ([], None, 0))
     assert ran == []
+    # the feed works but finds fewer than five relevant headlines: the web search tops it up
+    store = NewsStore()
+    one = [{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}]
+    message = refresh_news(store, NOW, FakeClient([tag(0, "Lufthansa fuel hedge")]), fetch=fetch_of(*one),
+                           search=lambda client: ran.append(1) or ([], None, 1))
+    assert ran == [1] and "429" not in message
 
 
 def test_a_web_search_timeout_is_not_counted_against_the_daily_cap():

@@ -4,7 +4,11 @@ Matching rule (a headline passes if ANY of these holds):
   1. it names one of the three groups or a subsidiary (AIRLINE_TERMS), or
   2. it contains an aviation-fuel term (FUEL_STRONG) - industry-wide by definition, or
   3. it contains a general market / cost / disruption term (GENERAL_TERMS) AND an aviation context word
-     (AVIATION_CONTEXT) - so 'Brent rises' passes only as 'Brent rises, airlines ...'.
+     (AVIATION_CONTEXT) - so 'Brent rises' passes only as 'Brent rises, airlines ...', or
+  4. it is about oil supply or prices on its own (OIL_TERMS: Brent, OPEC, Strait of Hormuz, oil embargo ...) - these
+     move the jet fuel price whatever airline the headline names (added 7 Oct 2026), or
+  5. it names a conflict, sanction or trade measure (CONFLICT_TERMS: war, tariffs, sanctions, Iran, Ukraine ...) AND
+     an energy word (ENERGY_WORDS) or an aviation context word - 'tariffs hit airlines', 'Iran war oil exports'.
 Terms are matched case-insensitively on word boundaries; English, German and French variants included because
 GDELT carries all three. Also: outlet names from domains, and de-duplication across sources ("also reported by").
 """
@@ -29,6 +33,24 @@ GENERAL_TERMS = (
     "airspace", "rerouting", "Middle East", "Iran", "Strait of Hormuz", "Red Sea", "EU ETS", "carbon price",
     "emissions", "euro dollar", "EUR/USD", "Ölpreis", "Streik", "Luftraum", "prix du pétrole", "grève",
     "espace aérien",
+)
+# Oil supply and price news passes without an airline word (rule 4); it is what moves the jet fuel price.
+OIL_TERMS = (
+    "oil price", "oil prices", "crude oil", "crude prices", "Brent", "OPEC", "OPEC+", "oil supply", "oil embargo",
+    "oil sanctions", "oil tanker", "oil tankers", "oil shock", "oil disruption", "oil exports", "Strait of Hormuz",
+    "Hormuz", "refinery", "refineries", "refining margin", "energy crisis", "diesel prices", "pipeline attack",
+    "Ölpreis", "Erdöl", "Ölförderung", "prix du pétrole", "pétrole brut",
+)
+# Conflict, politics and trade (rule 5): counted only together with an energy or aviation word.
+CONFLICT_TERMS = (
+    "war", "conflict", "ceasefire", "sanctions", "embargo", "tariff", "tariffs", "trade war", "blockade", "missile",
+    "missiles", "drone attack", "Houthi", "Houthis", "Red Sea", "Middle East", "Iran", "Israel", "Gaza", "Lebanon",
+    "Ukraine", "Russia", "Kremlin", "Saudi", "geopolitical", "no-fly zone", "airspace closure",
+    "Krieg", "Konflikt", "Sanktionen", "Zölle", "Waffenstillstand", "guerre", "conflit", "droits de douane",
+)
+ENERGY_WORDS = (
+    "oil", "fuel", "fuels", "energy", "gas", "petrol", "gasoline", "Öl", "Kraftstoff", "Energie", "pétrole",
+    "carburant", "énergie",
 )
 AVIATION_CONTEXT = (
     "airline", "airlines", "aviation", "flight", "flights", "carrier", "carriers", "air travel", "airport",
@@ -75,11 +97,12 @@ def _pattern(terms):
 
 _AIRLINE, _STRONG = _pattern(AIRLINE_TERMS), _pattern(FUEL_STRONG)
 _GENERAL, _CONTEXT = _pattern(GENERAL_TERMS), _pattern(AVIATION_CONTEXT)
+_OIL, _CONFLICT, _ENERGY = _pattern(OIL_TERMS), _pattern(CONFLICT_TERMS), _pattern(ENERGY_WORDS)
 _EXCLUDE = _pattern(EXCLUDE_TERMS)
 
 
 def match_reason(title):
-    """Why a headline passes the filter ('airline' / 'fuel' / 'general+aviation'), or None if it does not.
+    """Why a headline passes the filter ('airline' / 'fuel' / 'general+aviation' / 'oil' / 'conflict+energy/aviation'), or None if it does not.
 
     Excluded phrases (EXCLUDE_TERMS, e.g. the town 'New Iberia') are removed before matching.
     """
@@ -90,6 +113,10 @@ def match_reason(title):
         return "fuel"
     if _GENERAL.search(title) and _CONTEXT.search(title):
         return "general+aviation"
+    if _OIL.search(title):
+        return "oil"
+    if _CONFLICT.search(title) and (_ENERGY.search(title) or _CONTEXT.search(title)):
+        return "conflict+energy/aviation"
     return None
 
 
@@ -117,6 +144,17 @@ def story_key(title):
     without short filler words."""
     words = [w for w in re.findall(r"[a-z0-9äöüéèàç]+", (title or "").lower()) if len(w) > 2]
     return " ".join(words[:8])
+
+
+MATCH_PRIORITY = {"airline": 0, "fuel": 1, "general+aviation": 2, "oil": 3, "conflict+energy/aviation": 4}
+
+
+def prioritise(headlines):
+    """Airline and jet-fuel headlines first, then oil, then conflict / trade news; otherwise the order is kept.
+
+    The page tags only the first MAX_PER_REFRESH headlines, so broad oil or war news must not push out airline news.
+    """
+    return sorted(headlines, key=lambda h: MATCH_PRIORITY.get(h.get("match"), len(MATCH_PRIORITY)))
 
 
 def merge_sources(headlines):

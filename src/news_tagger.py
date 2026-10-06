@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-from src.news_keywords import MAJOR_OUTLETS, WEB_DOMAINS, keep, merge_sources, outlet_name
+from src.news_keywords import MAJOR_OUTLETS, WEB_DOMAINS, keep, merge_sources, outlet_name, prioritise
 
 MODEL = "claude-haiku-4-5-20251001"
 MAX_PER_REFRESH = 20
@@ -60,6 +60,7 @@ GDELT_QUERIES = (
     '(Lufthansa OR Eurowings OR "Austrian Airlines" OR "Brussels Airlines")',
     '("Air France" OR KLM OR Transavia OR "British Airways" OR Iberia OR "Aer Lingus")',
     '("jet fuel" OR kerosene OR Kerosin OR "fuel surcharge" OR "fuel hedge")',
+    '("oil price" OR OPEC OR "Strait of Hormuz" OR "oil supply" OR "oil embargo" OR "crude oil" OR refinery)',
 )
 GDELT_PAUSE_S = 6                                # GDELT allows one request per 5 seconds
 
@@ -301,22 +302,31 @@ def refresh(store, now, fetch=None, client=None):
 FEED_BUSY_MESSAGE = "The headline feed is busy right now."
 
 
-def refresh_news(store, now, client=None, fetch=None, search=None):
-    """'Refresh news': the live feed first; when it cannot be reached, a web search instead (its own limits apply).
+MIN_HEADLINES_BEFORE_WEB = 5          # fewer relevant headlines than this after the feed: top up with a web search
 
-    No technical error text reaches the visitor: the message says what the page shows. Returns that message.
+
+def refresh_news(store, now, client=None, fetch=None, search=None):
+    """The one 'Refresh news' button: the live feed first, then a web search when the feed is busy or finds few headlines.
+
+    The web search keeps its own limits (shared cooldown, daily cap). No technical error text reaches the visitor: the
+    message says what the page shows. Returns that message.
     """
     refresh(store, now, fetch=fetch, client=client)
     feed_failed = store.last_failure is not None and now - store.last_failure < RETRY_AFTER_FAILURE
-    if not feed_failed or client is None:
+    if client is None or not (feed_failed or len(store.headlines) < MIN_HEADLINES_BEFORE_WEB):
         return store.last_message
     web_ran_before = store.web_last
-    refresh_web(store, now, client, search=search)
-    if store.web_last == now and store.web_last != web_ran_before and store.headlines:
-        store.last_message = "Headlines from a web search of US and UK outlets."
-    else:
-        store.last_message = f"{FEED_BUSY_MESSAGE} {_cached_note(store) or 'Try again in a few minutes.'}"
+    try:
+        refresh_web(store, now, client, search=search)
+    except Exception:                                       # the top-up must never take the page down
+        store.web_last = web_ran_before
+    searched = store.web_last == now and store.web_last != web_ran_before
     store.web_message = ""                                  # counts and limits are on the Method page, not on the page
+    if searched and store.headlines:
+        store.last_message = ("Headlines from a web search of US and UK outlets." if feed_failed else
+                              "Headlines from the live feed and a web search of US and UK outlets.")
+    elif feed_failed:
+        store.last_message = f"{FEED_BUSY_MESSAGE} {_cached_note(store) or 'Try again in a few minutes.'}"
     return store.last_message
 
 
@@ -344,7 +354,7 @@ def _refresh_locked(store, now, fetch, client):
     fetched = len(headlines)
     kept = keep(headlines)                                                # keyword rule first: no AI cost
     store.filtered_out = fetched - len(kept)
-    headlines = merge_sources(kept)[:MAX_PER_REFRESH]
+    headlines = prioritise(merge_sources(kept))[:MAX_PER_REFRESH]
     message = f"{fetched} headlines fetched, {len(headlines)} relevant by keyword."
     _archive(store, headlines, now)
     message += _tag_new(store, headlines, client, now)
@@ -385,7 +395,8 @@ def _tag_new(store, headlines, client, now):
 WEB_SEARCH_PROMPT = (
     "Search the web for the latest news (last 30 days) about jet fuel prices, the jet fuel crack, fuel hedging, fuel "
     "surcharges, capacity cuts or airspace disruption affecting Lufthansa Group, Air France-KLM or IAG (British Airways, "
-    "Iberia). Prefer US and UK business, energy and aviation outlets. "
+    "Iberia), and about oil supply disruptions, tariffs, sanctions, war or conflict that move oil or jet fuel prices "
+    "or airline operations. Prefer US and UK business, energy and aviation outlets. "
     "Answer with one short line; the search results themselves are what we use.")
 
 
@@ -492,7 +503,7 @@ def refresh_web(store, now, client, search=None):
         if error:
             store.web_message = f"Web search failed: {error}"
             return store.web_message
-        kept = merge_sources(keep(found))[:MAX_PER_REFRESH]
+        kept = prioritise(merge_sources(keep(found)))[:MAX_PER_REFRESH]
         message = f"Web search: {used} searches, {len(found)} results, {len(kept)} relevant by keyword."
         _archive(store, kept, now)
         message += _tag_new(store, kept, client, now)
