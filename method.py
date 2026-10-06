@@ -368,13 +368,13 @@ with st.container(key="method-layout"):
         st.html(mp.verdict_table(mc.SOURCE_VERDICTS))
         st.markdown(
             "**Feed.** GDELT, the last three days, English, German and French sources, in three short searches "
-            "(airline groups, peers, jet fuel terms) 6 seconds apart. **Search the web** (on request): Anthropic's "
+            "(airline groups, peers, jet fuel terms) 6 seconds apart. **Web search** (automatic top-up when the feed is busy or finds few headlines): Anthropic's "
             f"web search, asked for {', '.join(MAJOR_OUTLETS)}; only headline, outlet, date and link are kept. Limits "
-            f"for all visitors together: {news_tagger.WEB_SEARCH_MAX_USES} searches per click, one click per "
+            f"for all visitors together: {news_tagger.WEB_SEARCH_MAX_USES} searches per refresh, one web search per "
             f"{int(news_tagger.WEB_SEARCH_COOLDOWN.total_seconds() // 60)} minutes, "
             f"{news_tagger.WEB_SEARCH_DAILY_CAP} a day; estimated cost about USD "
             f"{news_tagger.WEB_SEARCH_COST_PER_CLICK_USD[0]:.2f}-{news_tagger.WEB_SEARCH_COST_PER_CLICK_USD[1]:.2f} "
-            "per click.")
+            "per web search.")
         with st.expander("Keyword rule (before any AI call)"):
             st.markdown(
                 "A headline is kept only if it **names one of the three groups or a subsidiary**, or contains an "

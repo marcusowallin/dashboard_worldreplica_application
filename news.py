@@ -13,7 +13,7 @@ from src.model.run import AIRLINES
 from src.news_keywords import MAJOR_OUTLETS
 from src.news_tagger import (
     DRIVER_STEPS, MAX_PER_REFRESH, WEB_SEARCH_COOLDOWN, WEB_SEARCH_COST_PER_CLICK_USD, WEB_SEARCH_DAILY_CAP,
-    WEB_SEARCH_MAX_USES, NewsStore, refresh_web, seven_day_summary, tagged_view,
+    WEB_SEARCH_MAX_USES, NewsStore, seven_day_summary, tagged_view,
 )
 from src.story.sources import markers as mk
 from src.ui import components as ui
@@ -54,16 +54,12 @@ with st.container(key="step-news"):
                            markers_html=mk("NEWS")))
     names = {a: AIRLINE_SHORT[a] for a in AIRLINES}
     st.html(ui.news_summary(seven_day_summary(store, datetime.now()), names, DRIVER_STEPS))
-    left, mid, right = st.columns([1.5, 1.6, 2.2], vertical_alignment="center")
-    if left.button("Refresh news", key="cta-news", help="Live feed, last three days (a web search if the feed is busy); shared 10-minute cooldown"):
+    left, right = st.columns([1.5, 3.8], vertical_alignment="center")
+    if left.button("Refresh news", key="cta-news",
+                   help=("Live feed, last three days; a web search of US and UK outlets tops it up when the feed is busy "
+                         "or finds few headlines. Shared 10-minute cooldown.")):
         with st.spinner("Fetching headlines and tagging new ones..."):
             news_tagger.refresh_news(store, datetime.now(), client=client)
-    if mid.button("Search the web", key="cta-web", disabled=client is None,
-                  help=(f"US and UK business and aviation outlets, last 30 days: up to {WEB_SEARCH_MAX_USES} searches per click, one click per "
-                        f"{int(WEB_SEARCH_COOLDOWN.total_seconds() // 60)} minutes and {WEB_SEARCH_DAILY_CAP} per day "
-                        "for all visitors")):
-        with st.spinner("Searching the web and tagging new headlines..."):
-            refresh_web(store, datetime.now(), client)
     # before the first refresh the message already says "Not refreshed yet", so no second copy of it in brackets
     ago = (f" (last refreshed {max(0, int((datetime.now() - store.last_refresh).total_seconds() // 60))} min ago)"
            if store.last_refresh else "")
@@ -102,11 +98,11 @@ with st.container(key="step-news"):
             "(1), jet premium / refining (2), hedging (3), capacity (4), pass-through (5), guidance (6), airspace / "
             "disruption (7). **7-day line**: headlines collected by this page in the last seven days (kept in "
             "memory; a restart starts it again).\n\n"
-            f"**Search the web** (on request): Anthropic's web search tool, prompted for {', '.join(MAJOR_OUTLETS)}; "
+            f"**Web search** (automatic top-up when the live feed is busy or finds fewer than {news_tagger.MIN_HEADLINES_BEFORE_WEB} relevant headlines): Anthropic's web search tool, limited to {', '.join(MAJOR_OUTLETS)}; "
             "only headline, outlet, date and link are kept - no article text. Limits for all visitors together: "
-            f"{WEB_SEARCH_MAX_USES} searches per click, one click per "
-            f"{int(WEB_SEARCH_COOLDOWN.total_seconds() // 60)} minutes, {WEB_SEARCH_DAILY_CAP} clicks a day. "
-            f"**Estimated cost per click: about USD {low:.2f}-{high:.2f}** (USD 10 per 1,000 searches plus the "
+            f"{WEB_SEARCH_MAX_USES} searches per refresh, one web search per "
+            f"{int(WEB_SEARCH_COOLDOWN.total_seconds() // 60)} minutes, {WEB_SEARCH_DAILY_CAP} a day. "
+            f"**Estimated cost per web search: about USD {low:.2f}-{high:.2f}** (USD 10 per 1,000 searches plus the "
             "search results read as input tokens, and the tagging call; Anthropic price list, 1 Oct 2026), so at "
             f"most about USD {high * WEB_SEARCH_DAILY_CAP:.2f} a day.\n\n"
             "**Cost guards** for 'Refresh news': click only, one shared 10-minute cooldown, only new headlines are "

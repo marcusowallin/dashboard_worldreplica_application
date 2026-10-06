@@ -146,6 +146,17 @@ def story_key(title):
     return " ".join(words[:8])
 
 
+MATCH_PRIORITY = {"airline": 0, "fuel": 1, "general+aviation": 2, "oil": 3, "conflict+energy/aviation": 4}
+
+
+def prioritise(headlines):
+    """Airline and jet-fuel headlines first, then oil, then conflict / trade news; otherwise the order is kept.
+
+    The page tags only the first MAX_PER_REFRESH headlines, so broad oil or war news must not push out airline news.
+    """
+    return sorted(headlines, key=lambda h: MATCH_PRIORITY.get(h.get("match"), len(MATCH_PRIORITY)))
+
+
 def merge_sources(headlines):
     """One entry per story, in first-seen order; the others' outlets go to 'also_reported_by'."""
     merged, index = [], {}
