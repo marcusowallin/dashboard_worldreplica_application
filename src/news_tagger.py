@@ -60,6 +60,7 @@ GDELT_QUERIES = (
     '(Lufthansa OR Eurowings OR "Austrian Airlines" OR "Brussels Airlines")',
     '("Air France" OR KLM OR Transavia OR "British Airways" OR Iberia OR "Aer Lingus")',
     '("jet fuel" OR kerosene OR Kerosin OR "fuel surcharge" OR "fuel hedge")',
+    '("oil price" OR OPEC OR "Strait of Hormuz" OR "oil supply" OR "oil embargo" OR "crude oil" OR refinery)',
 )
 GDELT_PAUSE_S = 6                                # GDELT allows one request per 5 seconds
 
@@ -385,7 +386,8 @@ def _tag_new(store, headlines, client, now):
 WEB_SEARCH_PROMPT = (
     "Search the web for the latest news (last 30 days) about jet fuel prices, the jet fuel crack, fuel hedging, fuel "
     "surcharges, capacity cuts or airspace disruption affecting Lufthansa Group, Air France-KLM or IAG (British Airways, "
-    "Iberia). Prefer US and UK business, energy and aviation outlets. "
+    "Iberia), and about oil supply disruptions, tariffs, sanctions, war or conflict that move oil or jet fuel prices "
+    "or airline operations. Prefer US and UK business, energy and aviation outlets. "
     "Answer with one short line; the search results themselves are what we use.")
 
 

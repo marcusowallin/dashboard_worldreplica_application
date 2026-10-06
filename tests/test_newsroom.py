@@ -26,7 +26,14 @@ def test_keyword_rule_reasons():
     assert match_reason("Lufthansa cuts winter flights") == "airline"
     assert match_reason("Kerosinpreis steigt weiter") == "fuel"                      # German fuel term
     assert match_reason("Brent jumps as airlines brace for costs") == "general+aviation"
-    assert match_reason("Brent jumps on OPEC cut") is None                           # market term, no aviation word
+    assert match_reason("Brent jumps on OPEC cut") == "oil"                          # oil supply news passes alone (7 Oct)
+    assert match_reason("Strait of Hormuz closure sends oil prices higher") == "oil"
+    assert match_reason("US tariffs hit airlines and aircraft makers") == "conflict+energy/aviation"
+    assert match_reason("Sanctions on Russia squeeze fuel exports") == "conflict+energy/aviation"
+    assert match_reason("Iran war puts oil exports at risk") == "oil"
+    assert match_reason("Gaza war: petrol prices climb") == "conflict+energy/aviation"
+    assert match_reason("Tariffs on imported furniture rise") is None                # conflict word, no energy / aviation
+    assert match_reason("Ukraine war: football league postponed") is None
     assert match_reason("Football club signs striker") is None
     assert match_reason("Iberian ham exports rise") is None                          # word boundary: not 'Iberia'
     assert match_reason("B & B Theatres Opening Soon in New Iberia") is None         # place name (seen 1 Oct 2026)

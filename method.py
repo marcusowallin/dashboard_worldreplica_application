@@ -11,7 +11,10 @@ import streamlit as st
 from src import news_tagger
 from src.live_state import FALLBACK_FX, current_prices
 from src.model.run import AIRLINES, BASELINE_DAY
-from src.news_keywords import AIRLINE_TERMS, AVIATION_CONTEXT, EXCLUDE_TERMS, FUEL_STRONG, GENERAL_TERMS, MAJOR_OUTLETS
+from src.news_keywords import (
+    AIRLINE_TERMS, AVIATION_CONTEXT, CONFLICT_TERMS, ENERGY_WORDS, EXCLUDE_TERMS, FUEL_STRONG, GENERAL_TERMS, MAJOR_OUTLETS,
+    OIL_TERMS,
+)
 from src.story import method_content as mc
 from src.story.hero import company_reports_as_of, consensus_as_of, split_check
 from src.story.price_split import (
@@ -381,6 +384,10 @@ with st.container(key="method-layout"):
             st.markdown("**Fuel terms:** " + ", ".join(FUEL_STRONG))
             st.markdown("**Market / disruption terms:** " + ", ".join(GENERAL_TERMS))
             st.markdown("**Aviation words:** " + ", ".join(AVIATION_CONTEXT[:-len(AIRLINE_TERMS)]))
+            st.markdown("**Oil supply and price terms (pass on their own):** " + ", ".join(OIL_TERMS))
+            st.markdown("**Conflict, politics and trade terms (pass with an energy or aviation word):** "
+                        + ", ".join(CONFLICT_TERMS))
+            st.markdown("**Energy words:** " + ", ".join(ENERGY_WORDS))
             st.markdown("**Excluded phrases:** " + ", ".join(EXCLUDE_TERMS))
         with st.expander("Tagging and guards"):
             st.markdown(
