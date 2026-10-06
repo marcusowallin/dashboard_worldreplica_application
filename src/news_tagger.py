@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-from src.news_keywords import MAJOR_OUTLETS, OUTLETS, keep, merge_sources, outlet_name
+from src.news_keywords import MAJOR_OUTLETS, WEB_DOMAINS, keep, merge_sources, outlet_name
 
 MODEL = "claude-haiku-4-5-20251001"
 MAX_PER_REFRESH = 20
@@ -30,7 +30,7 @@ CLIENT_TIMEOUT_S = 30.0                          # tagging call
 WEB_SEARCH_TIMEOUT_S = 90.0                      # a web search with up to 3 searches needs longer
 CLIENT_RETRIES = 1
 GDELT_TIMEOUT_S = 20
-MAJOR_DOMAINS = [domain for domain, name in OUTLETS.items() if name in MAJOR_OUTLETS]   # enforced, not just a prompt hint
+MAJOR_DOMAINS = list(WEB_DOMAINS)                # enforced in the request, not just a prompt hint
 DAILY_CALL_CAP = 20
 MAX_TOKENS = 4000
 
@@ -131,6 +131,7 @@ class NewsStore:
     web_last: datetime = None                          # 'Search the web' shared cooldown and daily cap
     web_calls_by_day: dict = field(default_factory=dict)
     web_message: str = ""
+    last_error: str = ""                               # technical reason of the last failed fetch (not shown to visitors)
     filtered_out: int = 0                              # headlines dropped by the keyword prefilter (last refresh)
     archive: dict = field(default_factory=dict)        # headline key -> (headline, first seen) for the 7-day summary
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)
@@ -297,20 +298,47 @@ def refresh(store, now, fetch=None, client=None):
         store.lock.release()
 
 
+FEED_BUSY_MESSAGE = "The headline feed is busy right now."
+
+
+def refresh_news(store, now, client=None, fetch=None, search=None):
+    """'Refresh news': the live feed first; when it cannot be reached, a web search instead (its own limits apply).
+
+    No technical error text reaches the visitor: the message says what the page shows. Returns that message.
+    """
+    refresh(store, now, fetch=fetch, client=client)
+    feed_failed = store.last_failure is not None and now - store.last_failure < RETRY_AFTER_FAILURE
+    if not feed_failed or client is None:
+        return store.last_message
+    web_ran_before = store.web_last
+    refresh_web(store, now, client, search=search)
+    if store.web_last == now and store.web_last != web_ran_before and store.headlines:
+        store.last_message = "Headlines from a web search of US and UK outlets."
+    else:
+        store.last_message = f"{FEED_BUSY_MESSAGE} {_cached_note(store) or 'Try again in a few minutes.'}"
+    store.web_message = ""                                  # counts and limits are on the Method page, not on the page
+    return store.last_message
+
+
+def _cached_note(store):
+    """Say what the page shows after a refresh that did not fetch: the cached set, or nothing yet (a fresh start)."""
+    return "Showing the cached set." if store.headlines else ""
+
+
 def _refresh_locked(store, now, fetch, client):
     """The refresh itself; call only through refresh(), which holds the lock."""
     if store.last_refresh and now - store.last_refresh < COOLDOWN:
         wait = store.last_refresh + COOLDOWN
-        store.last_message = f"Refreshed recently; next refresh possible at {wait:%H:%M}. Showing the cached set."
+        store.last_message = f"Refreshed recently; next refresh possible at {wait:%H:%M}. {_cached_note(store)}"
         return store.last_message
     if store.last_failure and now - store.last_failure < RETRY_AFTER_FAILURE:
         seconds = int((RETRY_AFTER_FAILURE - (now - store.last_failure)).total_seconds()) + 1
-        store.last_message = f"The last fetch failed; try again in {seconds} s. Showing the cached set."
+        store.last_message = f"{FEED_BUSY_MESSAGE} Try again in {seconds} s. {_cached_note(store)}"
         return store.last_message
     headlines, error = fetch()
     if error:                                     # a failed fetch must not lock the button for ten minutes
-        store.last_failure = now
-        store.last_message = f"{error} Showing the cached set."
+        store.last_failure, store.last_error = now, error
+        store.last_message = f"{FEED_BUSY_MESSAGE} {_cached_note(store) or 'Try again in a few minutes.'}"
         return store.last_message
     store.last_refresh, store.last_failure = now, None
     fetched = len(headlines)
@@ -355,13 +383,40 @@ def _tag_new(store, headlines, client, now):
 # --- 'Search the web' (on demand): Anthropic web search tool, headline / outlet / date / URL only ------------------
 
 WEB_SEARCH_PROMPT = (
-    "Search the web for the latest news (last 7 days) about jet fuel prices, the jet fuel crack, fuel hedging, fuel "
+    "Search the web for the latest news (last 30 days) about jet fuel prices, the jet fuel crack, fuel hedging, fuel "
     "surcharges, capacity cuts or airspace disruption affecting Lufthansa Group, Air France-KLM or IAG (British Airways, "
-    "Iberia). Prefer major outlets such as Reuters, Bloomberg, Financial Times, WSJ, Handelsblatt, Les Echos and BBC. "
+    "Iberia). Prefer US and UK business, energy and aviation outlets. "
     "Answer with one short line; the search results themselves are what we use.")
 
 
 WEB_TIMEOUT_MESSAGE = "The AI service did not answer in time."          # not counted against the daily cap
+
+
+WEB_MAX_AGE_DAYS = 30        # the search tool does not enforce recency, so older or undated results are dropped in code
+
+
+def page_age_days(age):
+    """'17 days ago' / '3 weeks ago' / '2 months ago' -> days, or None when missing or not understood."""
+    import re
+    match = re.match(r"\s*(\d+)\s+(minute|hour|day|week|month|year)s?\b", age or "", flags=re.IGNORECASE)
+    if not match:
+        return None
+    per_unit = {"minute": 0, "hour": 0, "day": 1, "week": 7, "month": 30, "year": 365}
+    return int(match.group(1)) * per_unit[match.group(2).lower()]
+
+
+def _web_request(client, max_uses, domains):
+    return client.with_options(timeout=WEB_SEARCH_TIMEOUT_S).messages.create(
+        model=MODEL, max_tokens=512, messages=[{"role": "user", "content": WEB_SEARCH_PROMPT}],
+        tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses, "allowed_domains": domains}])
+
+
+def domains_without_blocked(domains, error_text):
+    """The API names domains its crawler cannot reach ("not accessible to our user agent: ['a.com', ...]"); drop them."""
+    import re
+    match = re.search(r"not accessible to our user agent: \[([^\]]*)\]", error_text)
+    blocked = set(re.findall(r"'([^']+)'", match.group(1))) if match else set()
+    return [d for d in domains if d not in blocked]
 
 
 def search_web(client, max_uses=WEB_SEARCH_MAX_USES):
@@ -373,12 +428,13 @@ def search_web(client, max_uses=WEB_SEARCH_MAX_USES):
     import anthropic
     from urllib.parse import urlparse
     try:
-        response = client.with_options(timeout=WEB_SEARCH_TIMEOUT_S).messages.create(
-            model=MODEL, max_tokens=512,
-            messages=[{"role": "user", "content": WEB_SEARCH_PROMPT}],
-            tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses,
-                    "allowed_domains": MAJOR_DOMAINS}],
-        )
+        try:
+            response = _web_request(client, max_uses, MAJOR_DOMAINS)
+        except anthropic.BadRequestError as err:      # one outlet blocks the crawler: drop it, try once more
+            usable = domains_without_blocked(MAJOR_DOMAINS, str(err))
+            if usable == MAJOR_DOMAINS or not usable:
+                raise
+            response = _web_request(client, max_uses, usable)
     except anthropic.APITimeoutError:
         return [], WEB_TIMEOUT_MESSAGE, 0
     except anthropic.AuthenticationError:
@@ -404,7 +460,8 @@ def search_web(client, max_uses=WEB_SEARCH_MAX_USES):
             out.append({"title": (getattr(r, "title", "") or "").strip(), "url": url, "domain": domain,
                         "outlet": outlet_name(domain), "seen": getattr(r, "page_age", None), "source": "web search"})
     used = getattr(getattr(response.usage, "server_tool_use", None), "web_search_requests", 0) or 0
-    out = [h for h in out if h["title"]]
+    out = [h for h in out if h["title"] and (page_age_days(h["seen"]) is not None
+                                             and page_age_days(h["seen"]) <= WEB_MAX_AGE_DAYS)]
     if not out and errors:
         return [], f"The web search failed ({errors[0]}).", used
     return out, None, used
@@ -460,7 +517,7 @@ def seven_day_summary(store, now, days=SUMMARY_DAYS):
     """Counts over the headlines collected in the last `days` days that have a valid, relevant tag.
 
     Output: {"headlines": n, "impacts": {airline: {"negative", "positive", "neutral"}}, "top_driver": name or None,
-             "untagged": n}. Collected = first seen by this app (GDELT covers 3 days, web search 7 days); the
+             "untagged": n}. Collected = first seen by this app (GDELT covers 3 days, web search 30 days); the
     archive lives in memory, so a restart of the app starts it again.
     """
     snapshot = list(store.archive.items())              # one atomic copy: a refresh may add to the archive meanwhile

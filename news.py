@@ -13,7 +13,7 @@ from src.model.run import AIRLINES
 from src.news_keywords import MAJOR_OUTLETS
 from src.news_tagger import (
     DRIVER_STEPS, MAX_PER_REFRESH, WEB_SEARCH_COOLDOWN, WEB_SEARCH_COST_PER_CLICK_USD, WEB_SEARCH_DAILY_CAP,
-    WEB_SEARCH_MAX_USES, NewsStore, refresh, refresh_web, seven_day_summary, tagged_view,
+    WEB_SEARCH_MAX_USES, NewsStore, refresh_web, seven_day_summary, tagged_view,
 )
 from src.story.sources import markers as mk
 from src.ui import components as ui
@@ -55,11 +55,11 @@ with st.container(key="step-news"):
     names = {a: AIRLINE_SHORT[a] for a in AIRLINES}
     st.html(ui.news_summary(seven_day_summary(store, datetime.now()), names, DRIVER_STEPS))
     left, mid, right = st.columns([1.5, 1.6, 2.2], vertical_alignment="center")
-    if left.button("Refresh news", key="cta-news", help="GDELT, last three days; shared 10-minute cooldown"):
+    if left.button("Refresh news", key="cta-news", help="Live feed, last three days (a web search if the feed is busy); shared 10-minute cooldown"):
         with st.spinner("Fetching headlines and tagging new ones..."):
-            refresh(store, datetime.now(), client=client)
+            news_tagger.refresh_news(store, datetime.now(), client=client)
     if mid.button("Search the web", key="cta-web", disabled=client is None,
-                  help=(f"Major outlets, last 7 days: up to {WEB_SEARCH_MAX_USES} searches per click, one click per "
+                  help=(f"US and UK business and aviation outlets, last 30 days: up to {WEB_SEARCH_MAX_USES} searches per click, one click per "
                         f"{int(WEB_SEARCH_COOLDOWN.total_seconds() // 60)} minutes and {WEB_SEARCH_DAILY_CAP} per day "
                         "for all visitors")):
         with st.spinner("Searching the web and tagging new headlines..."):
@@ -77,9 +77,8 @@ with st.container(key="step-news"):
     shown = [i for i in items if choice in (None, "All")
              or (i["tag"] and choice in [names.get(a) for a in i["tag"]["airlines"]])]
     if not items:
-        feed_down = "could not be loaded" in (store.last_message or "") or "no data" in (store.last_message or "")
-        st.html(ui.as_of_line("The news feed is not reachable right now - try again in a few minutes. The rest of the "
-                              "page does not depend on it." if feed_down else
+        st.html(ui.as_of_line("The headline feed is busy right now - try again in a few minutes. The rest of the "
+                              "page does not depend on it." if store.last_failure else
                               "No headlines yet - press 'Refresh news'."))
     elif not shown:
         st.html(ui.as_of_line(f"No tagged headlines about {choice} in the current set."))

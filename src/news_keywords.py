@@ -48,8 +48,24 @@ OUTLETS = {
     "aviationweek.com": "Aviation Week", "flightglobal.com": "FlightGlobal", "simpleflying.com": "Simple Flying",
     "aerotime.aero": "AeroTime", "skift.com": "Skift", "airlineweekly.com": "Airline Weekly",
     "argusmedia.com": "Argus", "spglobal.com": "S&P Global", "marketscreener.com": "MarketScreener",
+    "cnn.com": "CNN", "cbsnews.com": "CBS News", "nbcnews.com": "NBC News", "npr.org": "NPR",
+    "washingtonpost.com": "Washington Post", "fortune.com": "Fortune", "forbes.com": "Forbes", "axios.com": "Axios",
+    "finance.yahoo.com": "Yahoo Finance", "investing.com": "Investing.com", "morningstar.com": "Morningstar",
+    "morningstar.co.uk": "Morningstar UK", "nasdaq.com": "Nasdaq", "oilprice.com": "OilPrice.com",
+    "rigzone.com": "Rigzone", "cityam.com": "City AM", "proactiveinvestors.co.uk": "Proactive Investors",
+    "lse.co.uk": "London South East", "businesstraveller.com": "Business Traveller",
 }
-MAJOR_OUTLETS = ("Reuters", "Bloomberg", "Financial Times", "WSJ", "Handelsblatt", "Les Echos", "BBC")
+# 'Search the web' is limited to these outlets. Every domain was accepted by Anthropic's web search on 6 Oct 2026
+# (the API rejects the whole request if one listed domain blocks its crawler: Reuters, FT, WSJ, BBC, Les Echos do).
+# US / UK business, energy and aviation press first; sources the Method page rules out on terms of use are not listed.
+WEB_DOMAINS = (
+    "bloomberg.com", "cnbc.com", "cnn.com", "cbsnews.com", "nbcnews.com", "npr.org", "washingtonpost.com",
+    "fortune.com", "forbes.com", "axios.com", "finance.yahoo.com", "investing.com", "marketscreener.com",
+    "morningstar.com", "morningstar.co.uk", "nasdaq.com", "oilprice.com", "rigzone.com", "argusmedia.com",
+    "spglobal.com", "flightglobal.com", "cityam.com", "proactiveinvestors.co.uk", "lse.co.uk",
+    "businesstraveller.com", "handelsblatt.com",
+)
+MAJOR_OUTLETS = tuple(OUTLETS[d] for d in WEB_DOMAINS)
 
 
 def _pattern(terms):
