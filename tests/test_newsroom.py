@@ -147,7 +147,9 @@ class FakeWebClient:
 
 def test_search_web_keeps_only_headline_outlet_date_link():
     r = [SimpleNamespace(title="Lufthansa raises fuel surcharge", url="https://www.reuters.com/x", page_age="2 days"),
-         SimpleNamespace(title="Bad link", url="javascript:alert(1)", page_age=None)]
+         SimpleNamespace(title="Bad link", url="javascript:alert(1)", page_age=None),
+         SimpleNamespace(title="Old story", url="https://www.cnbc.com/old", page_age="160 days ago"),
+         SimpleNamespace(title="Undated story", url="https://www.cnbc.com/undated", page_age=None)]
     client = FakeWebClient(fake_web_response(r))
     found, error, used = search_web(client, max_uses=3)
     assert error is None and used == 2 and len(found) == 1
@@ -156,8 +158,47 @@ def test_search_web_keeps_only_headline_outlet_date_link():
     tool = client.sent[0]["tools"][0]
     assert tool["type"] == "web_search_20250305" and tool["max_uses"] == 3       # basic variant for Haiku 4.5
     from src.news_tagger import MAJOR_DOMAINS, WEB_SEARCH_TIMEOUT_S
-    assert tool["allowed_domains"] == MAJOR_DOMAINS and "reuters.com" in MAJOR_DOMAINS and "cnbc.com" not in MAJOR_DOMAINS
+    assert tool["allowed_domains"] == MAJOR_DOMAINS and "bloomberg.com" in MAJOR_DOMAINS and "cnbc.com" in MAJOR_DOMAINS
+    assert not {"reuters.com", "ft.com", "wsj.com", "bbc.co.uk", "lesechos.fr"} & set(MAJOR_DOMAINS)   # block the crawler (6 Oct 2026)
     assert client.options == [{"timeout": WEB_SEARCH_TIMEOUT_S}]                 # a 3-search request gets 90 s, not 30
+
+
+def test_blocked_domains_named_by_the_api_are_dropped():
+    from src.news_tagger import domains_without_blocked
+    text = "The following domains are not accessible to our user agent: ['bbc.com', 'ft.com']. Read more: https://x"
+    assert domains_without_blocked(["bloomberg.com", "ft.com", "bbc.com"], text) == ["bloomberg.com"]
+    assert domains_without_blocked(["a.com"], "some other 400") == ["a.com"]
+
+
+def test_search_web_retries_once_without_the_blocked_domain():
+    import anthropic
+    from src.news_tagger import MAJOR_DOMAINS
+
+    class Flaky(FakeWebClient):
+        def __init__(self, response):
+            super().__init__(response)
+            ok = self.messages.create
+
+            def create(**kw):
+                if not self.sent:
+                    self.sent.append(kw)
+                    msg = f"The following domains are not accessible to our user agent: ['{MAJOR_DOMAINS[0]}']."
+                    body = {"error": {"message": msg}}
+                    raise anthropic.BadRequestError(
+                        msg, response=SimpleNamespace(status_code=400, headers={}, request=None), body=body)
+                return ok(**kw)
+            self.messages = SimpleNamespace(create=create)
+
+    client = Flaky(fake_web_response([]))
+    found, error, _ = search_web(client)
+    assert error is None and len(client.sent) == 2
+    assert MAJOR_DOMAINS[0] not in client.sent[1]["tools"][0]["allowed_domains"]
+
+
+def test_page_age_days_reads_the_tools_age_strings():
+    from src.news_tagger import page_age_days
+    assert page_age_days("2 days ago") == 2 and page_age_days("3 weeks ago") == 21 and page_age_days("0 hours ago") == 0
+    assert page_age_days(None) is None and page_age_days("yesterday") is None
 
 
 def test_search_web_error_block_is_reported_not_raised():
@@ -220,14 +261,48 @@ def test_a_failed_fetch_starts_a_short_retry_window_not_the_ten_minute_cooldown(
         calls.append(1)
         return [], "The news feed answered HTTP 429."
 
-    assert "429" in refresh(store, NOW, fetch=failing)
+    message = refresh(store, NOW, fetch=failing)
+    assert "busy" in message and "429" not in message and "429" in store.last_error       # no technical text on the page
     assert store.last_refresh is None and store.last_failure == NOW          # no 'refreshed recently' after a failure
-    assert "try again in" in refresh(store, NOW + RETRY_AFTER_FAILURE / 2, fetch=failing) and len(calls) == 1
+    assert "Try again in" in refresh(store, NOW + RETRY_AFTER_FAILURE / 2, fetch=failing) and len(calls) == 1
     refresh(store, NOW + RETRY_AFTER_FAILURE + timedelta(seconds=1), fetch=failing)
     assert len(calls) == 2                                                     # retried after seconds, not after 10 minutes
     ok = refresh(store, NOW + timedelta(minutes=2), fetch=fetch_of([{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}]))
     assert store.last_refresh == NOW + timedelta(minutes=2) and store.last_failure is None and "fetched" in ok
     assert "Refreshed recently" in refresh(store, NOW + timedelta(minutes=2) + COOLDOWN / 2, fetch=failing)
+
+
+def test_a_failed_fetch_does_not_claim_a_cached_set_when_nothing_is_cached():
+    from src.news_tagger import NewsStore, refresh
+    store = NewsStore()
+    failing = lambda: ([], "GDELT could not be loaded: HTTP 429.")             # noqa: E731
+    assert "Try again in a few minutes" in refresh(store, NOW, fetch=failing)
+    store.headlines = [{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}]
+    assert "Showing the cached set" in refresh(store, NOW + timedelta(minutes=2), fetch=failing)
+
+
+def test_refresh_news_falls_back_to_a_web_search_without_showing_an_error():
+    from src.news_tagger import NewsStore, refresh_news
+    hits = [{"title": "Lufthansa raises fuel surcharge", "url": "https://www.cnbc.com/x", "domain": "www.cnbc.com",
+             "source": "web search"}]
+    failing = lambda: ([], "GDELT could not be loaded: HTTP 429.")             # noqa: E731
+    store = NewsStore()
+    message = refresh_news(store, NOW, FakeClient([tag(0, "Lufthansa raises fuel surcharge")]), fetch=failing,
+                           search=lambda client: (list(hits), None, 2))
+    assert message == "Headlines from a web search of US and UK outlets." and store.headlines
+    assert "429" not in message and store.web_message == ""
+    # the web search fails too: still no error text, only what the page shows
+    store = NewsStore()
+    message = refresh_news(store, NOW, FakeClient([]), fetch=failing, search=lambda client: ([], "boom (400)", 0))
+    assert "busy" in message and "400" not in message and "boom" not in message and store.web_message == ""
+    # no API key: no fallback is possible, the message stays plain
+    assert "busy" in refresh_news(NewsStore(), NOW, None, fetch=failing)
+    # the live feed works: no web search is run
+    ran = []
+    ok = fetch_of([{"title": "Lufthansa fuel hedge", "url": "https://x.example/a"}])
+    refresh_news(NewsStore(), NOW, FakeClient([tag(0, "Lufthansa fuel hedge")]), fetch=ok,
+                 search=lambda client: ran.append(1) or ([], None, 0))
+    assert ran == []
 
 
 def test_a_web_search_timeout_is_not_counted_against_the_daily_cap():
